@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"   name="操作员管理" layout="vertical" width="100%" height="100%" xmlns:common="minn.common.*" 
+		   initialize="module1_initializeHandler(event)" creationComplete="creationCompleteHandler(event)" remove="module1_removeHandler(event)">
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import minn.common.Entrypt;
+			
+			import mvc.model.operator.vo.Operator;
+			
+			private var _operator:Operator=null;
+			private var url:String=null;
+			private var win:TitleWindow=null;
+			[Bindable]
+			public var operators:ArrayCollection=new ArrayCollection();
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(MinnMessageEvent.MESSAGE+"OperatorPanel",messageHandler);
+
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				
+				_operator=e.data.item as Operator;
+//				Alert.show(_operator.color+'');
+				  //				var op:Operator=e.data.item as Operator;
+				  //				Alert.show(_ctype.color);
+				  if(e.data.method=="add"){
+					  MinnUtil.reverse(operators);
+					  operators.addItem(_operator);
+					  MinnUtil.reverse(operators);
+				  }else{
+//					  operators.setItemAt(_operator,e.data.index);
+				  }
+			}
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+//				this.addEventListener(OperatorEvent.OPERATOR_MESSAGE,function():void{
+//					Alert.show('d');
+//				});
+				pageBar.pageSize=3;
+				pageBar.addEventListener(PageEvent.PAGE_CHANGE,query_clickHandler);
+				appFacade.startup(AppCommand.OPERATOR_MNG_STARTUP,this);
+			}
+
+
+
+
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.removeEventListener(FlexEvent.CREATION_COMPLETE,creationCompleteHandler);
+			}
+
+
+            private function pageChangeHandler(e:PageEvent):void{
+				
+			}
+
+			protected function open_add_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				
+//				 win=WindowProxy.getInstance().getSpTitleWindow(url,{index:-1,item:_operator});
+				 url="mvc/view/manager/operator/component/OperatorPanel";
+				 _operator=new Operator();
+				 _operator._sid=this.parentApplication.PRIVATEKEY;
+				 _operator._color='1';
+				 Entrypt.loadswfObject("mvc/view/manager/operator/component/OperatorPanel"+Config.SUBFFIX,function(evt:Event):void{
+					 loadswfCompleteHandler(evt,"OperatorPanel.swf",_operator,"add");
+				 });
+			}
+			private function loadswfCompleteHandler(evt:Event,url:String,_operator:Operator,method:String,ind:int=-1):void{
+				//				mm.loadModule("2011010812342.swf",Entrypt.uncompress(evt.target.data as ByteArray,KEY));
+				if(Config.SUBFFIX==Config.FLAG)
+					WindowProxy.getInstance().getSpTitleWindow(url,evt.target.data as ByteArray,{method:method,index:ind,item:_operator},this);
+					else
+			    	WindowProxy.getInstance().getSpTitleWindow(url,Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),{method:method,index:ind,item:_operator},this);
+			}
+
+			protected function open_modify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(operator_id.selectedItem){
+			     url="mvc/view/manager/operator/component/OperatorPanel"+Config.SUBFFIX;
+				 _operator=operator_id.selectedItem as Operator;
+				 _operator._color='2';
+				 Entrypt.loadswfObject("mvc/view/manager/operator/component/OperatorPanel"+Config.SUBFFIX,function(evt:Event):void{
+					 loadswfCompleteHandler(evt,"OperatorPanel.swf",_operator,"modify",operator_id.selectedIndex);
+				 });
+//				 win=WindowProxy.getInstance().getSpTitleWindow(url,{index:operator_id.selectedIndex,item:_operator}); 
+				}else{
+					Alert.show("请先选择数据!","提示");
+				}
+				
+			}
+		
+
+
+			protected function del_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				 var dobj:Operator=operator_id.selectedItem as Operator;
+				 dobj._sid=this.parentApplication.PRIVATEKEY;
+				this.dispatchEvent(new OperatorEvent(OperatorEvent.OPERATOR_DEL,{index:operator_id.selectedIndex,item:dobj},true));
+			}
+
+			public function closeWin():void{
+				win.dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+			}
+
+			public function invokeAdd(operator:Operator):void{
+					MinnUtil.reverse(operators);
+					operators.addItem(operator);
+					MinnUtil.reverse(operators);
+				    closeWin();
+			}
+			public function invokeUpdate(info:Object):void{
+				operators.setItemAt(info.item,info.index);
+				closeWin();
+			}
+			
+			public function invokeDel():void
+			{
+				operators.removeItemAt(operators.getItemIndex(operator_id.selectedItem));
+			}
+			
+			private function query_clickHandler(e:Event=null):void{
+				var condition:Object=new Object();
+				condition._sid=this.parentApplication.PRIVATEKEY;
+				if(e is PageEvent){
+					condition.pageIndex=(e as PageEvent).pageIndex;
+					condition.pageSize=(e as PageEvent).pageSize;
+					condition.recordCount=(e as PageEvent).recordCount;
+				}else{
+					pageBar.recordCount = -1;
+					pageBar.pageIndex = 0;
+					condition.pageIndex=pageBar.pageIndex;
+					condition.pageSize=pageBar.pageSize;
+					condition.recordCount=pageBar.recordCount;
+				}
+//				Alert.show(condition.pageIndex);
+				condition.user_name=user_name.text;
+				this.dispatchEvent(new OperatorEvent(OperatorEvent.OPERATOR_QUERY,{item:condition},true));
+			}
+			
+			public function invokeQuery(arr:ArrayCollection,recordCount:int):void{
+				pageBar.recordCount=recordCount;
+				operators.removeAll();
+				operator_id.itemRenderer=null;
+				operators.addAll(arr);
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:states>
+		<s:State name="default"/>    
+		<s:State name="qry"/>
+	</mx:states>
+	<mx:HBox width="100%">
+		<common:PageToolBar id="pageBar">
+		</common:PageToolBar>
+		<s:Label text="红色字体为新增,蓝色字体为重新修改,默认字体为查询数据" color="#F70303" height.default="20" fontSize="15"/>
+		<mx:Spacer width="100%"/>
+		<s:ToggleButton label="显示条件查询" click="currentState='qry'" click.qry="currentState=''" label.qry="隐藏条件查询" />
+		<s:ToggleButton label="添加" click="open_add_clickHandler(event)"/>
+		<s:ToggleButton label="修改" click="open_modify_clickHandler(event)"/>
+		<s:ToggleButton label="删除" click="del_clickHandler(event)"/>
+	</mx:HBox>
+	  <mx:HBox width="100%" includeIn="qry">
+	    <s:Label text="用户名" />
+	    <s:TextInput id="user_name"/>
+	    <s:Button label="查找" click="query_clickHandler(event)"/>
+		  
+	  </mx:HBox>
+	<mx:DataGrid width="100%" height="100%" dataProvider="{operators}" id="operator_id" fontSize="15">
+		<mx:columns>
+			<mx:DataGridColumn headerText="用户名" dataField="opr_name_en" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="中文名" dataField="opr_name_ch"  itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="QQ或MSN" dataField="qq_msn" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="私人电话" dataField="person_phone" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="创建人" dataField="_creatorName" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="创建时间" dataField="createDate" itemRenderer="minn.common.MinnLabel"/>
+		</mx:columns>
+	</mx:DataGrid>
+</mx:Module>

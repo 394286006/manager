@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   layout="absolute" width="274" height="236"
+		   name="角色/组设置"
+		   initialize="module1_initializeHandler(event)"
+		   creationComplete="module_creationCompleteHandler(event)" 
+		   remove="module1_removeHandler(event)" >
+	
+	<fx:Metadata>
+	</fx:Metadata>
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mx.events.ValidationResultEvent;
+			import mx.validators.Validator;
+			
+			[Bindable]
+			private var grouptb:GroupTb=null;
+			public var fun:Function=null;
+			// send the named event
+			private var method:String="add";
+			private var index:int=0;
+			protected function module1_initializeHandler(event:Event):void
+			{
+				MinnMessageEventManager.getInstance().addEventListener(this.parent.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+				
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				method=e.data.method;
+				index=e.data.index;
+				grouptb=e.data.item as GroupTb;
+			}
+			protected function module_creationCompleteHandler(event:FlexEvent):void
+			{
+				
+				appFacade.startup(AppCommand.GROUP_PANEL_STARTUP,this);
+			}
+			
+			private function sendEvent( eventName:String ):void
+			{
+				var validatorErrorArray:Array = Validator.validateAll(validatorArray); 
+				var err:ValidationResultEvent; 
+				var errorMessageArray:Array = []; 
+				if(validatorErrorArray.length>0){
+					for each (err in validatorErrorArray) { 
+						errorMessageArray.push(err.message); 
+					} 
+					
+					if(errorMessageArray.length >0){
+						Alert.show(errorMessageArray.join("\n\n"), "请按照以下错误提示信息重新填写", Alert.OK);
+						
+						return;
+					}
+				}
+				
+				switch(eventName){
+					case PermissionEvent.GROUP_ADD:
+						grouptb._sid=this.parentApplication.PRIVATEKEY;
+						grouptb.name=pname.text;
+						grouptb.descript=desc_id.text;
+						grouptb.rolenum=num.text;
+						if(grouptb.id==''){
+							//						actiontb=new ActionTb();
+							grouptb._creatorName=this.parentApplication.operator.opr_name_ch;
+							grouptb.creator=this.parentApplication.operator.id;
+							this.dispatchEvent(new PermissionEvent(eventName,{method:'add',item:grouptb},true));
+						}else{
+							this.dispatchEvent(new PermissionEvent(PermissionEvent.GROUP_MODIFY,{method:'modify',item:grouptb,index:index},true));
+						}
+						break;
+					
+					case PermissionEvent.GROUP_CANCEL:
+						cancel_clickHandler();
+						break;
+				}
+				
+				
+			}
+			
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+			public function cancel_clickHandler(event:MouseEvent=null):void
+			{
+				
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+				if(method=="modify"){
+					var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"GroupPanel",{method:"modify",index:index,item:grouptb},true);
+					MinnMessageEventManager.getInstance().dispatchEvent(me);
+				}
+			}
+			
+			/**
+			 *  添加数据成功回调函数 
+			 **/
+			public function invokeAdd(o:Object):void{
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"GroupPanel",{method:"add",index:index,item:o},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+			public function invokeModify(o:Object):void{
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"GroupPanel",{method:"modify",index:index,item:o},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<fx:Array id="validatorArray">
+			<mx:StringValidator 
+				source="{pname}" 
+				requiredFieldError="权限不能为空！"
+				property="text" 
+				required="true" />
+			<mx:StringValidator
+				source="{num}" 
+				requiredFieldError="编号不能为空！"
+				property="text" 
+				required="true" />
+			<mx:StringValidator
+				source="{desc_id}" 
+				requiredFieldError="描述不能为空！"
+				property="text" 
+				required="true" />
+		</fx:Array>
+	</fx:Declarations>
+	
+	<mx:Label x="23" y="15" text="名称"/> 
+	<mx:TextInput id="pname" x="87" y="13" text="{grouptb.name}"/>
+	
+	<mx:Label x="23" y="42" text="编号"/> 
+	<mx:TextInput id ="num" x="87" y="40" text="{grouptb.rolenum}"/>	
+	
+	<mx:LinkButton x="67" y="200" name="login" label="确定" click="sendEvent(PermissionEvent.GROUP_ADD)"/>
+	<mx:LinkButton x="154" y="200" label="取消" click="sendEvent(PermissionEvent.GROUP_CANCEL)"/>
+	<mx:Label x="23" y="113" text="描述" />
+	<mx:TextArea id ="desc_id" x="87" y="111"  height="86" text="{grouptb.descript}"/>
+	<mx:Label x="23" y="89" text="创建人"/>
+	<mx:Label id="pname0" x="87" y="87" text="{grouptb._creatorName}"/>
+	<mx:Label x="23" y="69" text="创建时间"/>
+	<mx:Label id ="num0" x="87" y="67" text="{grouptb.createDate}"/>
+</mx:Module>

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:mx="http://www.adobe.com/2006/mxml"  name="test" currentState="showFilter"  
+		   layout="absolute" width="100%" height="100%" xmlns:component="mvc.view.front.product.component.*" 
+		   creationComplete="module1_creationCompleteHandler(event)">
+	
+	<mx:Script>
+		<![CDATA[
+			import mvc.view.front.product.event.ProductDetailEvent;
+			import mvc.view.front.product.vo.Product;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.IViewCursor;
+			import mx.controls.Alert;
+			import mx.effects.Move;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			import mx.events.StateChangeEvent;
+			import mx.rpc.events.ResultEvent;
+
+			private var mv:Move=null;
+			
+			private var ptestdata:Array=[{productId:"1",name:"Nokia 6010",description:"Easy to use without sacrificing style, the Nokia 6010 phone offers functional " +
+				"voice communication supported by text messaging, multimedia messaging, mobile internet, games and more",price:"99.99"
+			,series:"6000",triband:false,imglevel1:["productdata/pic/level1/1234567.gif","productdata/pic/100_1764.JPG"],imglevel2:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"]}
+			,{productId:"2",name:"Nokia 3100 Blue",description:"Light up the night with a glow-in-the-dark cover - when it's charged with light you can easily find your phone in the dark. When you get a call, the Nokia 3100 phone flashes in tune with your ringing tone. And when you snap on a Nokia Xpress-on™ gaming cover*, you'll get luminescent light effects in time to the gaming action.",
+				price:"139"
+				,series:"3000",triband:false,imglevel1:["productdata/pic/level1/1234567.jpg","productdata/pic/Nokia_3120.gif","productdata/pic/Nokia_3220.gif"],imglevel2:["productdata/pic/100_1764.jpg","productdata/pic/Nokia_3595.gif","productdata/pic/Nokia_6010.gif"]}
+			,{productId:"3",name:"Nokia 3100 Pink",description:"Light up the night with a glow-in-the-dark cover - when it's charged with light you can easily find your phone in the dark. When you get a call, the Nokia 3100 phone flashes in tune with your ringing tone. And when you snap on a Nokia Xpress-on™ gaming cover*, you'll get luminescent light effects in time to the gaming action.",
+				price:"139"
+				,series:"3000",triband:true,imglevel1:["productdata/pic/level1/20101117.jpg","productdata/pic/level1/20101013(001).jpg"],imglevel2:["productdata/pic/level1/20101117.jpg","productdata/pic/level1/20101013(003).jpg"]}
+			,{productId:"4",name:"Nokia 3120",description:"Easy to use without sacrificing style, the Nokia 6010 phone offers functional " +
+				"voice communication supported by text messaging, multimedia messaging, mobile internet, games and more",price:"99.99"
+				,series:"2000",triband:false,imglevel1:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"],imglevel2:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"]}
+			,{productId:"5",name:"Nokia 3220",description:"Easy to use without sacrificing style, the Nokia 6010 phone offers functional " +
+				"voice communication supported by text messaging, multimedia messaging, mobile internet, games and more",price:"99.99"
+				,series:"6000",triband:false,imglevel1:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"],imglevel2:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"]}
+			,{productId:"6",name:"Nokia 3650",description:"Easy to use without sacrificing style, the Nokia 6010 phone offers functional " +
+				"voice communication supported by text messaging, multimedia messaging, mobile internet, games and more",price:"99.99"
+				,series:"6000",triband:false,imglevel1:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"],imglevel2:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"]}
+			,{productId:"7",name:"Nokia 6820",description:"Easy to use without sacrificing style, the Nokia 6010 phone offers functional " +
+				"voice communication supported by text messaging, multimedia messaging, mobile internet, games and more",price:"99.99"
+				,series:"6000",triband:false,imglevel1:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"],imglevel2:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"]}
+			,{productId:"8",name:"Nokia 6010",description:"Easy to use without sacrificing style, the Nokia 6010 phone offers functional " +
+				"voice communication supported by text messaging, multimedia messaging, mobile internet, games and more",price:"99.99"
+				,series:"6000",triband:false,imglevel1:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"],imglevel2:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"]}
+			,{productId:"9",name:"Nokia 6670",description:"Easy to use without sacrificing style, the Nokia 6010 phone offers functional " +
+				"voice communication supported by text messaging, multimedia messaging, mobile internet, games and more",price:"99.99"
+				,series:"6000",triband:false,imglevel1:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"],imglevel2:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"]}
+			,{productId:"10",name:"Nokia 6010",description:"Easy to use without sacrificing style, the Nokia 6010 phone offers functional " +
+				"voice communication supported by text messaging, multimedia messaging, mobile internet, games and more",price:"99.99"
+				,series:"6000",triband:false,imglevel1:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"],imglevel2:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"]}
+			,{productId:"11",name:"Nokia 6620",description:"Easy to use without sacrificing style, the Nokia 6010 phone offers functional " +
+				"voice communication supported by text messaging, multimedia messaging, mobile internet, games and more",price:"99.99"
+				,series:"6000",triband:false,imglevel1:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"],imglevel2:["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG"]}
+			];
+			
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				mv=new Move();
+				this.addEventListener("hideProductCart",function(){
+				 // Alert.show('d');
+//					if(currentState != 'showFilter')
+//					Alert.show((hb.width-pf.width-10).toString());
+					productCategory_id.width=hb.width-pf.width-10;
+					
+					currentState = 'showFilter';
+//					productCategory_id.right=280;
+				});
+				this.addEventListener("showProductCart",function(){
+//					 Alert.show("showProductCart");
+//					if(currentState != 'showCart')
+					productCategory_id.width=hb.width-pc.width-10;
+					currentState = 'showCart';
+					
+					//					productCategory_id.right=280;
+				});
+				this.addEventListener(StateChangeEvent.CURRENT_STATE_CHANGE,function(){
+					//Alert.show(currentState);
+				//	if(currentState == 'showFilter')
+					//	productCategory_id.width=hb.width-pf.width-10;
+					//if(currentState == 'showCart'){
+					//	productCategory_id.width=hb.width-pc.width-10;
+						
+					//	}
+				});
+				this.addEventListener(ProductDetailEvent.DETAILS,function(evt:ProductDetailEvent):void{
+//				   Alert.show('details');
+					var p:Product=evt.product;
+					productCategory_id.showDetails(p);
+				});
+//				productService.send();
+				
+				var ps:ArrayCollection=new ArrayCollection(ptestdata);
+				var temp:ArrayCollection = new ArrayCollection();
+				var cursor:IViewCursor = ps.createCursor();
+				while (!cursor.afterLast)
+				{
+					var product:Product = new Product();
+					product.fill(cursor.current);
+					temp.addItem(product);
+					cursor.moveNext();
+				}
+				catalog = temp;
+			}
+		
+			private function productServiceResultHandler(event:ResultEvent):void
+			{
+				//HTTPService returns an ArrayCollection for nested arrays
+				//		Alert.show("dataS");
+				var products:ArrayCollection = event.result.catalog.product;
+				var temp:ArrayCollection = new ArrayCollection();
+				var cursor:IViewCursor = products.createCursor();
+				while (!cursor.afterLast)
+				{
+					var product:Product = new Product();
+					product.fill(cursor.current);
+					temp.addItem(product);
+					cursor.moveNext();
+				}
+				catalog = temp;
+		
+			}
+			
+			private function moveEffectEndHandler():void{
+				//Alert.show(currentState);
+				//if(currentState == 'showFilter')
+				//	productCategory_id.width=hb.width-pf.width-10;
+				
+				//if(currentState == 'showCart'){
+				//	productCategory_id.width=hb.width-pc.width-10;
+				//	}
+			}
+//			[Bindable]
+			private var _catalog:ArrayCollection;
+			
+			[Bindable]
+			public function get catalog():ArrayCollection
+			{
+				return _catalog;
+			}
+			[Bindable]
+			public function set catalog(c:ArrayCollection):void
+			{
+				_catalog = c;
+				if (pf != null)
+				{
+//					pf.filter.count = c.length;
+				}
+			}
+			public function addToCompare(product:Product):void
+			{
+				//setting the state before adding the product avoids jumpiness in the transition, not sure why
+				if(currentState != 'showFilter')
+				currentState = 'showFilter';
+				pf.productList.addProduct(product);
+			}
+			
+			public function addToCart(product:Product):void
+			{
+				//setting the state before adding the product avoids jumpiness in the transition, not sure why
+				if(currentState != 'showCart')
+				currentState = 'showCart'; 
+				pc.productList.addProduct(product);
+			}
+		]]>
+	</mx:Script>
+
+		<mx:HTTPService id="productService" url="productdata/catalog.xml"
+					   result="productServiceResultHandler(event)"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+
+	
+	<mx:HBox width="100%" height="100%" id="hb">
+		<component:ProductFilterPanel width="250" height="100%" id="pf" filter="productCategory_id.filter(event.filter, event.live)"
+								 compare="productCategory_id.compare(pf.productList.getProducts())"
+										  creationComplete="if(catalog) pf.filter.count = catalog.length">
+		</component:ProductFilterPanel>
+		<mx:Spacer width="100%"/>
+		
+		<component:ProductCart width="400" id="pc" paddingTop="5">
+		</component:ProductCart>
+	</mx:HBox>
+	<component:ProductCategory height="100%" width="{hb.width-pf.width-10}" 
+							   x="259" y="0" 
+							   id="productCategory_id" 
+							   effectStart="moveEffectEndHandler()"
+							   catalog="{catalog}"
+							   compare="addToCompare(event.product)"
+							   purchase="addToCart(event.product)"
+							   cartCount="{pc.numProducts}">
+	</component:ProductCategory>
+	
+	<mx:states>
+		<mx:State name="showFilter" >
+			<mx:SetStyle target="{productCategory_id}" name="left" value="260"/>
+		</mx:State>        
+		<mx:State name="showCart" >
+			<mx:SetStyle target="{productCategory_id}" name="right" value="410"/>
+		</mx:State>
+	</mx:states>
+	<mx:transitions>
+		<mx:Transition fromState="*" toState="*">
+			<mx:Move target="{productCategory_id}"/>
+		</mx:Transition>
+	</mx:transitions>
+</mx:Module>

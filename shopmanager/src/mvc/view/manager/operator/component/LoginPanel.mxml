@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			xmlns:s="library://ns.adobe.com/flex/spark" 
+			xmlns:mx="library://ns.adobe.com/flex/mx"
+		   layout="absolute" width="100%" height="100%"
+		   name="登录"
+		   initialize="module1_initializeHandler(event)"
+		   creationComplete="module_creationCompleteHandler(event)" 
+		   remove="module1_removeHandler(event)" >
+	
+	<fx:Metadata>
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import minn.message.Message;
+			
+			import mvc.model.operator.vo.Operator;
+			import mvc.view.manager.operator.event.OperatorEvent;
+			
+			import mx.events.ValidationResultEvent;
+			import mx.validators.Validator;
+			include "../../../../../mvc/base/BaseImport.as";
+			
+		[Bindable]
+		private var operator:Operator=null;	
+			public var fun:Function=null;
+		// send the named event
+
+			
+			
+			protected function module_creationCompleteHandler(event:FlexEvent):void
+			{
+//				var d:Module
+				// TODO Auto-generated method stub
+//			  this.parentDocument.test();
+//				Alert.show(this.loaderInfo.url);
+//				var str:String=this.loaderInfo.url;
+//				var o:Object=str.substr(str.indexOf("=")+1) as Object;
+//					Alert.show(o.id);
+			  userName.text="admin";				
+//			  appFacade.startup(this.parentDocument);
+			  pwd.text="czmadmin123";
+//			  Alert.show(this.parentDocument.test());
+			  appFacade.startup(AppCommand.OPERATOR_LOGIN_PANEL_STARTUP,this);
+			}
+			
+		
+			
+
+
+			protected function module1_initializeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+//				var d:ModuleLoader=event.currentTarget as ModuleLoader;
+//				var o:Object=d.data;
+//				MessageEventManager.
+//			this.parentApplication.addEventListener(
+//				this.parentApplication.parent.addEventListener(
+//				this.parentApplication.parent.addEventListener(MessageEvent.INIT_MODULE_LOAD,function():void{
+//					Alert.show('e.data.toString()');
+//				});
+//			
+			
+			}
+
+		
+			
+			private function sendEvent( eventName:String ):void
+			{
+//							fun();
+				var validatorErrorArray:Array = Validator.validateAll(validatorArray); 
+				var err:ValidationResultEvent; 
+				var errorMessageArray:Array = []; 
+				if(validatorErrorArray.length>0){
+					for each (err in validatorErrorArray) { 
+						errorMessageArray.push(err.message); 
+					} 
+					
+					if(errorMessageArray.length >0){
+						Alert.show(errorMessageArray.join("\n\n"), "请按照以下错误提示信息重新填写", Alert.OK);
+						
+						return;
+					}
+				}
+				
+			    switch(eventName){
+					case OperatorEvent.OPERATOR_LOGIN:
+						operator=new Operator();
+						operator._sid=this.parentApplication.PRIVATEKEY;
+						operator.opr_name_en=userName.text;
+						operator.password=pwd.text;
+					this.dispatchEvent(new OperatorEvent(OperatorEvent.OPERATOR_LOGIN,{method:'login',item:operator},true));				
+						break;
+					case OperatorEvent.OPERATOR_CANCEL:
+						ExternalInterface.call("window.close()");
+//						this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+						break;
+				}
+					
+						}
+
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<fx:Array id="validatorArray">
+			<mx:StringValidator 
+				source="{userName}" 
+				requiredFieldError="用户名不能为空！"
+				property="text" 
+				required="true" />
+			<mx:StringValidator
+				source="{pwd}" 
+				requiredFieldError="密 码不能为空！"
+				property="text" 
+				required="true" />
+			
+		</fx:Array>
+	</fx:Declarations>
+	
+	<mx:Label x="56" y="43" text="用户名"/> 
+	<mx:TextInput id="userName" x="120" y="41" />
+	
+	<mx:Label x="56" y="69" text="密     码"/> 
+	<mx:TextInput id ="pwd" x="120" y="67" displayAsPassword="true"/>	
+	
+	<mx:LinkButton x="100" y="115" name="login" label="登录" click="sendEvent(OperatorEvent.OPERATOR_LOGIN)"/>
+	<mx:LinkButton x="187" y="115" label="取消" click="sendEvent(OperatorEvent.OPERATOR_CANCEL)"/>
+</mx:Module>

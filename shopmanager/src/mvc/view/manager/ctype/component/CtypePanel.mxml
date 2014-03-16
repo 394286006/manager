@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" 
+		   name="商品类型管理"
+		   layout="horizontal" width="280" height="290"  preinitialize="module1_initializeHandler(event)" creationComplete="module1_creationCompleteHandler(event)"
+		   remove="module1_removeHandler(event)">
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mvc.model.ctype.vo.Ctype;
+			import mvc.model.ctype.vo.CtypeMenu;
+			import mvc.view.manager.ctype.event.CtypeEvent;
+			import mvc.view.manager.merchandise.event.MerchandiseEvent;
+			
+			import mx.events.ValidationResultEvent;
+			import mx.utils.ArrayUtil;
+			import mx.validators.Validator;
+			[Bindable]
+			private var _ctype:Ctype=null;
+			
+			[Bindable]
+			private var _ctypes:XML=
+				                        <node>
+                                          <node name='顶级菜单' id='' category='0'></node>
+                                        </node>;
+//			[Bindable]
+//			private var _ctypes:XMLList=new ArrayCollection();
+			
+//			[Bindabel]
+//			private var _category:Object;
+			private var index:int=0;
+			
+//			[Bindable]
+//			private var menuLevel:Array=[{label:"顶级菜单"},{label:"父类1"},{label:"父类2"}];
+			private var pmenuid:String=null;
+			private var categorylevel:String;
+			[Bindable]
+			private var menuLevel:XMLList =
+				<>
+					<menuitem label="顶级菜单1" data="0">
+					</menuitem>
+					<menuitem label="父类111" data="top">
+					</menuitem>
+					<menuitem label="父类2222" data="top">
+					</menuitem>
+				</>;
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(this.parentDocument.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+//				MinnMessageEventManager.getDisp().addEventListener(this.parentDocument.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+				appFacade.startup(AppCommand.CTYPE_PANEL_STARTUP,this);
+//				var ctm:Ctype=new Ctype();
+//				ctm.name="顶级菜单";
+//				ctm.category="0";
+//				_ctypes.addItem({name:"顶级菜单",category:"0"});
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				_ctype=e.data.item as Ctype;
+//			    if(e.data.hasOwnProperty("menuid"))
+//				{
+					pmenuid=_ctype.pid;
+//				}
+				index=e.data.index;
+				_ctypes.appendChild(XMLList(e.data.ctypes));
+//				_ctypes.addAll(new ArrayCollection(e.data.ctypes));
+//				Alert.show(_ctypes.toString());
+				parentmenu_id.dataProvider=_ctypes.children();
+//				var ch:Array=_ctypes.children as Array;
+				for(var i:int=0;i<_ctypes.children().length();i++){
+					var id:String=_ctypes.children()[i].@id;
+					if(id==pmenuid){
+						//					if(id==_ctype.pid){
+						parentmenu_id.selectedItem=_ctypes.children()[i];
+						break;
+					}
+					//					}
+				}
+				
+//				this.dispatchEvent(new CtypeEvent(CtypeEvent.CTYPE_MENU_QUERY));
+			}
+
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+              
+			}
+
+
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+			private function cancel_clickHandler(event:MouseEvent=null):void
+			{
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+			
+			
+			protected function saveOrModify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var validatorErrorArray:Array = Validator.validateAll(validatorArray); 
+				var err:ValidationResultEvent; 
+				var errorMessageArray:Array = []; 
+				if(validatorErrorArray.length>0){
+					for each (err in validatorErrorArray) { 
+						errorMessageArray.push(err.message); 
+					} 
+					
+					if(errorMessageArray.length >0){
+						Alert.show(errorMessageArray.join("\n\n"), "请按照以下错误提示信息重新填写", Alert.OK);
+						
+						return;
+					}
+				}
+				
+				_ctype.name=type_name_id.text;
+				_ctype.descript=dsc_id.text;
+				if(_ctype.pid!='')
+					_ctype.category=String(int(_ctype.category)+1);
+//				else
+				_ctype.pid=parentmenu_id.selectedItem.@id;
+				
+				if(_ctype._color=='3'){
+					_ctype._color='2';
+				}
+				_ctype.creator=this.parentApplication.operator.id;
+				_ctype._creatorName=this.parentApplication.operator.opr_name_ch;
+//				_ctype.createDate=MinnUtil.getCurentDateAndTime();
+//				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"CtypePanel",{index:index,item:_ctype},true);
+//				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				//				var op:Operator=e.data.item as Operator;
+				var ee:CtypeEvent=null;
+				if(_ctype.id=='')
+					ee=new CtypeEvent(CtypeEvent.CTYPE_ADD,{index:index,item:_ctype},true);
+				else 
+					ee=new CtypeEvent(CtypeEvent.CTYPE_MODIFY,{index:index,item:_ctype},true);
+				this.dispatchEvent(ee);
+			}
+			
+			/**
+			 * 查询菜单，已过时
+			 **/ 
+			public function invokeCtypeMenu(menu:XMLList):void{
+				menuLevel=menu;
+				for(var i:int=0;i<menuLevel.length();i++){
+					var id:String=menuLevel[i].@id;
+					if(id==pmenuid)
+//					if(id==_ctype.pid){
+						parentmenu_id.selectedItem=menuLevel[i];
+//					}
+				}
+			}
+			/**
+			 *  添加数据成功回调函数 
+			 **/
+			public function invokeAdd(o:Object):void{
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"CtypePanel",{method:"add",index:index,item:o},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				cancel_clickHandler();
+			}
+			public function invokeModify(o:Object):void{
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"CtypePanel",{method:"modify",index:index,item:o},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				cancel_clickHandler();
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<fx:Array id="validatorArray">
+			<mx:StringValidator 
+				source="{type_name_id}" 
+				requiredFieldError="类别不能为空！"
+				property="text" 
+				required="true" />
+			<mx:StringValidator
+				source="{dsc_id}" 
+				requiredFieldError="描述不能为空！"
+				property="text" 
+				required="true" />
+			
+		</fx:Array>
+	</fx:Declarations>
+	<mx:Form x="101" y="56">
+		<mx:FormItem label="类别">
+			<s:TextInput id="type_name_id" text="{_ctype.name}"/>
+		</mx:FormItem>
+		<mx:FormItem label="父菜单">
+			<mx:ComboBox labelField="@name" id="parentmenu_id"/>
+		</mx:FormItem>
+		<mx:FormItem label="描述">
+			<s:TextArea   id="dsc_id" text="{_ctype.descript}"/>
+		</mx:FormItem>
+		<mx:HBox width="100%" horizontalAlign="left">
+			<mx:Spacer width="40"/>
+			<s:Button label="确定" click="saveOrModify_clickHandler(event)"/>
+			<s:Button label="取消" click="cancel_clickHandler(event)"/>
+		</mx:HBox>
+		
+	</mx:Form>
+	
+</mx:Module>

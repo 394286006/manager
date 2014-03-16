@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   name="用户管理"
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" xmlns:common="minn.common.*" 
+		   creationComplete="creationCompleteHandler(event)" remove="module1_removeHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import minn.common.Entrypt;
+			
+			import mvc.view.front.user.event.UserEvent;
+			
+			import mx.collections.ArrayCollection;
+			
+			include "../../../../../mvc/base/BaseImport.as";
+			[Bindable]
+			public var datas:ArrayCollection=new ArrayCollection();
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(MinnMessageEvent.MESSAGE+"userPanel",messageHandler);
+				pageBar.pageSize=3;
+				pageBar.addEventListener(PageEvent.PAGE_CHANGE,query_clickHandler);
+				this.appFacade.startup(AppCommand.USER_MNG_STARTUP,this);
+			}
+			
+			private function messageHandler(e:MinnMessageEvent):void{
+				//				Alert.show(e.data.color);
+//				_operator=e.data.item as Operator;
+//				var ee:OperatorEvent=null;
+//				if(_operator.color==1)
+//					ee=new OperatorEvent(OperatorEvent.OPERATOR_ADD,e.data,true);
+//				else
+//					ee=new OperatorEvent(OperatorEvent.OPERATOR_MODIFY,e.data,true);
+//				this.dispatchEvent(ee);
+			}
+			
+			
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.removeEventListener(FlexEvent.CREATION_COMPLETE,creationCompleteHandler);
+			}
+			private function query_clickHandler(e:Event=null):void{
+				var condition:Object=new Object();
+				condition._sid=this.parentApplication.PRIVATEKEY;
+				if(e is PageEvent){
+					condition.pageIndex=(e as PageEvent).pageIndex;
+					condition.pageSize=(e as PageEvent).pageSize;
+					condition.recordCount=(e as PageEvent).recordCount;
+				}else{
+					pageBar.recordCount = -1;
+					pageBar.pageIndex = 0;
+					condition.pageIndex=pageBar.pageIndex;
+					condition.pageSize=pageBar.pageSize;
+					condition.recordCount=pageBar.recordCount;
+				}
+				//				Alert.show(condition.pageIndex);
+				condition.user_name=user_name.text;
+				this.dispatchEvent(new UserEvent(UserEvent.USER_QUERY,{item:condition},true));
+			}
+			protected function add_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(data_id.selectedItem){
+				var url:String="mvc/view/manager/user/component/LoginOrRegisterPanel"+Config.SUBFFIX;;
+				Entrypt.loadswfObject(url,function(evt:Event):void{
+					loadSpTitleswfCompleteHandler(evt,"mvc/view/manager/user/component/UserPanel.swf",{item:data_id.selectedItem});
+				});
+				}else{
+					Alert.show("请先选择数据!","提示");
+				}
+//				WindowProxy.getInstance().getSpTitleWindow(url);
+				//				parent.mdiCanvas.windowManager.addCenter(win);
+			}
+			private function loadSpTitleswfCompleteHandler(evt:Event,url:String,d:Object=null):void{
+				//				mm.loadModule("2011010812342.swf",Entrypt.uncompress(evt.target.data as ByteArray,KEY));
+				
+				if(Config.SUBFFIX==Config.FLAG)
+					WindowProxy.getInstance().getSpTitleWindow(url,evt.target.data as ByteArray,d,this);
+				else
+					WindowProxy.getInstance().getSpTitleWindow(url,Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),d,this);
+
+//				WindowProxy.getInstance().getSpTitleWindow(url,Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),d,this);
+			}
+			
+			protected function modify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var url:String="mvc/view/user/component/LoginOrRegisterPanel";
+				Entrypt.loadswfObject(url,function(evt:Event):void{
+					loadSpTitleswfCompleteHandler(evt,url);
+				});
+//				WindowProxy.getInstance().getSpTitleWindow(url);
+			}
+			
+			
+			protected function del_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+			public function invokeQuery(arr:ArrayCollection,recordCount:int):void{
+				pageBar.recordCount=recordCount;
+				datas.removeAll();
+				data_id.itemRenderer=null;
+				datas.addAll(arr);
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:states>
+		<s:State name="default"/>    
+		<s:State name="qry"/>
+	</mx:states>
+	<mx:HBox width="100%">
+		<common:PageToolBar id="pageBar">
+		</common:PageToolBar>
+		<mx:Spacer width="100%"/>
+		<s:ToggleButton label="显示条件查询" click="currentState='qry'" click.qry="currentState=''" label.qry="隐藏条件查询" />
+		<s:ToggleButton label="查看" click="add_clickHandler(event)" />
+		<s:ToggleButton label="修改" click="modify_clickHandler(event)" enabled="false"/>
+		<s:ToggleButton label="删除" click="del_clickHandler(event)" enabled="false"/>
+	</mx:HBox>
+	<mx:HBox width="100%" includeIn="qry">
+		<s:Label text="用户名"/>
+		<s:TextInput  id="user_name"/>
+		<s:Button label="查找" click="query_clickHandler(event)"/>
+		
+	</mx:HBox>
+	<mx:DataGrid width="100%" height="100%" id="data_id" dataProvider="{datas}">
+		<mx:columns>
+			<mx:DataGridColumn headerText="用户名" dataField="userName_en" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="中文名" dataField="userName_ch"  itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="QQ或MSN" dataField="qq_msn" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="私人电话" dataField="email" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="创建时间" dataField="createDate" itemRenderer="minn.common.MinnLabel"/>
+		</mx:columns>
+	</mx:DataGrid>
+</mx:Module>

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx2:HDividedBox xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/halo" 
+				xmlns:mx2="library://ns.adobe.com/flex/mx" 
+				width="100%" height="100%" 
+				minWidth='150' horizontalGap="10" dividerAlpha="1"
+				dividerDrag="hdividedbox_dividerDragHandler(event)" 
+			    creationComplete="hdividedbox1_creationCompleteHandler(event)"
+			    xmlns:flexmdi="flexmdi.containers.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import flexmdi.containers.MDIWindow;
+			import flexmdi.managers.MDIManager;
+			
+			import minn.common.Entrypt;
+			import minn.proxy.WindowProxy;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.DividerEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.events.MenuEvent;
+			[Bindable]
+			private var menuXML:XMLList =
+				<>
+					<menuitem label="系统管理" data="0">
+						<menuitem label="操作员管理" url="mvc/view/manager/operator/component/OperatorMngPanel"/>
+						<menuitem label="用户管理" url="mvc/view/manager/user/component/UserMngPanel"/>
+                      
+					</menuitem>
+					<menuitem label="商品管理" data="top">
+						<menuitem label="商品管理" url="mvc/view/manager/merchandise/component/MerchandiseMngPanel" />
+						
+					</menuitem>
+                    <menuitem label="订单管理" data="top">
+						<menuitem label="查看订单" url="mvc/view/manager/order/component/OrderMngPanel"/>
+					</menuitem>
+                    <menuitem label="配送管理" data="top" url="mvc/view/manager/area/component/AreaMngPanel">
+					</menuitem>
+                    <menuitem label="域名管理" data="top" url="mvc/view/manager/domain/component/DomainMngPanel">
+					</menuitem>
+                    <menuitem label="广告管理" data="top" url="mvc/view/manager/advertise/component/AdvertiseMngPanel">
+					</menuitem>
+                    <menuitem label="消息管理" data="top" url="mvc/view/manager/message/component/MessageMngPanel">
+					</menuitem>
+                   
+				</>;
+//			<menuitem label="商品类型管理" url="mvc/view/manager/ctype/component/CtypeMngPanel"/>
+//			<menuitem label="支付方式管理" data="top" url="mvc/view/manager/payway/component/PaywayMngPanel"/>
+			[Bindable]
+			private var menubarXML:XMLList =
+				<>
+					<menuitem label="窗口管理" data="1">
+						<menuitem label="显示所有窗口" data="1"/>
+						<menuitem label="关闭所有窗口" data="2"/>
+					</menuitem>
+				</>;
+			protected function hdividedbox1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				WindowProxy.getInstance(mdiCanvas);
+			}
+			/*
+			  点击左边菜单导航栏事，切换图标和缩放菜单
+			*/
+			protected function image_clickHandler(event:MouseEvent):void
+			{
+				var imgsource:String=event.currentTarget.source;
+				switch(imgsource){
+					case './assets/img/application_side_contract.png':event.currentTarget.source="./assets/img/application_side_expand.png";
+						menuTree.width=0;
+						menuTree.height=0;
+						menuTree.minWidth=0;
+						sp.width=0;
+						menushow.percentWidth=100;
+						menushow.width=15;
+//					   this.horizontalGap=0;
+						//						hg.percentWidth=100;
+						break;
+					case './assets/img/application_side_expand.png':event.currentTarget.source="./assets/img/application_side_contract.png";
+						menuTree.minWidth=50;
+						menuTree.percentWidth=100;
+						menuTree.percentHeight=100;
+						sp.percentWidth=100;
+						menushow.width=150;
+						menushow.minWidth=150;
+						//						menushow.width=0;
+						break;
+					default:
+						Alert.show("没有找到匹配的图片！");
+				}
+				
+			}
+			/*
+			拖动中间分隔条时重新设置菜单树的百分比
+			*/
+			protected function hdividedbox_dividerDragHandler(event:DividerEvent):void{
+				imgae.source="./assets/img/application_side_contract.png";
+				menuTree.percentWidth=100;
+				menuTree.percentHeight=100;
+				sp.percentWidth=100;
+			}
+			private var win:MDIWindow=null;
+
+			protected function tree_ClickHandler(evt:ListEvent):void{
+//				Alert.show(Tree(evt.target).selectedItem.@data);
+				var item:Object=Tree(evt.currentTarget).selectedItem;
+				
+				if(item.hasOwnProperty("@url")){
+//					win=WindowProxy.getInstance().checkExistWindow(item.@url);
+				win=WindowProxy.getInstance().checkExistWindow(item.@url+".swf") as MDIWindow;
+					
+				if(win==null){	
+					
+					Entrypt.loadswfObject(item.@url+Config.SUBFFIX,function(evt:Event):void{
+						loadswfCompleteHandler(evt,item);
+					});
+				}else{
+					win.visible=true;
+					WindowProxy.getInstance().bring2frong(win);
+				}
+				}
+			}
+			
+			private function loadswfCompleteHandler(evt:Event,item:Object):void{
+				//				mm.loadModule("2011010812342.swf",Entrypt.uncompress(evt.target.data as ByteArray,KEY));
+				
+				if(win==null){
+					if(Config.SUBFFIX==Config.FLAG)
+					win=WindowProxy.getInstance().getMdiWindow(item.@url+".swf",evt.target.data as ByteArray,null,item.hasOwnProperty("@isPersistent"));
+					else
+					win=WindowProxy.getInstance().getMdiWindow(item.@url+".swf",Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),null,item.hasOwnProperty("@isPersistent"));
+					win.maximize();
+					//				 arr.push({url:item.@url,uid:win});
+				}else {
+					//						Alert.show(win.title);
+					//						mdiCanvas.windowManager.bringToFront(win);
+					win.visible=true;
+				}
+			}
+
+
+		
+
+			
+			protected function menubar_itemClickHandler(event:MenuEvent):void
+			{
+			
+				if(event.item.@data==1){
+//					Alert.show('d');
+					WindowProxy.getInstance().showAllWindow();
+//					mdiCanvas.windowManager.cascade();
+				}
+				if(event.item.@data==2){
+					WindowProxy.getInstance().removeAllWindow();
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<s:VGroup gap="0" id="menushow" minWidth="150" height="100%">
+		<s:HGroup   width="100%" gap="0">
+			<mx2:MenuBar dataProvider="{menubarXML}" labelField="@label" itemClick="menubar_itemClickHandler(event)" id="sp"></mx2:MenuBar>
+			<mx2:Spacer width="20%"/><mx2:Image id="imgae"  source="./assets/img/application_side_contract.png" click="image_clickHandler(event)" toolTip="打开导航条菜单"/>	
+		</s:HGroup >
+		<mx2:Tree id="menuTree" width="150"  height="100%" labelField="@label" dataProvider="{menuXML}" itemClick="tree_ClickHandler(event)"></mx2:Tree>
+	</s:VGroup>
+	
+	<flexmdi:MDICanvas id="mdiCanvas" width="100%" height="100%" >
+		</flexmdi:MDICanvas>
+</mx2:HDividedBox>

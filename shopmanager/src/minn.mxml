@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+		 	   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   xmlns:common="minn.common.*" 
+	 		   xmlns:containers="flexmdi.containers.*"
+		 	   xmlns:tabBarClasses="flexmdi.controls.tabBarClasses.*"  
+		 	   xmlns:controls="flexmdi.controls.*"
+			   creationComplete="application1_creationCompleteHandler(event)"
+			   blendMode="darken"  
+			   width="100%" 
+			   height="100%" paddingLeft="10" paddingRight="10" paddingBottom="10" paddingTop="0"
+			    xmlns:component="mvc.view.front.user.component.*" xmlns:commont="mvc.view.front.commont.*" >
+	<fx:Script source="mvc/base/FrontBaseImport.as"/>
+	<fx:Script source="mvc/as4/FrontMenuAndIFrame.as"/>
+	<fx:Style source="assets/css/app_css.css"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import com.adobe.ac.mxeffects.DistortionConstants;
+			
+			import minn.common.Entrypt;
+			
+			import mvc.view.front.commont.Question;
+			import mvc.view.front.user.component.Exit;
+			
+			import skip.ButtonSkinClass;
+			import skip.TitleWindowSkinClass;
+			
+			import spark.components.TitleWindow;
+			
+			[Bindable]
+			public var user:User=null;
+			private var queryPro:Question;
+//			private var loe:LoginInfoAndExit=null;
+			private var loe:Exit=null;
+			[Bindable]
+			private var treeData:Array=[{label:"网站导航",children:[{label:"首页",data:1,url:"http://127.0.0.1:8009/minn/special/showPicdemo/demo1.html"},{label:"商品",data:1,url:"http://127.0.0.1:8009/minn/special/jqzoom_ev/demo/index.html"}
+			,{label:"使用手册",data:1,url:"http://127.0.0.1:8009/minn/special/zoomer/zoomer.html"},]},
+				{label:"友情链接",children:[{label:"test2",data:1,url:"http://127.0.0.1:8009/minn/index2.html"}]}
+			];
+			
+			[Bindable]
+		  	[Embed(source='assets/img/tab_no.jpg')]
+			private var c1:Class;
+			
+			protected function button1_clickHandler(event:MouseEvent=null):void
+			{
+			}
+			
+		
+			protected function application1_creationCompleteHandler(event:FlexEvent):void
+			{
+				WindowProxy.getInstance(mdi);
+//				dd.setStyle("headerHeight",0);
+//				dd
+				mdi.setChildIndex(win,0);
+				registerSkin();
+				loe=new Exit();
+		
+				loe.addEventListener(MouseEvent.CLICK,flip2Login);
+				ExternalInterface.addCallback("callBack",callBack);
+//				menuTree.fil
+				
+			}
+			
+			private function callBack():void{
+				Alert.show('callBack!');
+			}
+            private function searchProduct(e:MouseEvent):void{
+//				Alert.show('d');
+			} 
+			
+
+ 
+			protected function login_or_register_clickHandler(event:MouseEvent,type:String):void
+			{
+				// TODO Auto-generated method stub
+				Entrypt.loadswfObject("mvc/view/front/user/component/LoginOrRegisterPanel.swf",function(evt:Event):void{
+					loadTitleswfCompleteHandler(evt,"mvc/view/front/user/component/LoginOrRegisterPanel.swf",type,event.stageX,event.stageY);
+				});
+//	 			var win:TitleWindow= WindowProxy.getInstance().getSpTitleWindow("mvc/view/front/user/component/LoginOrRegisterPanel.swf",type,null,event.stageX,event.stageY);
+//				var clazz:Class = getDefinitionByName("skip.TitleWindowSkinClass") as Class;
+//				win.setStyle("skinClass", clazz); 
+			}
+			private function loadTitleswfCompleteHandler(evt:Event,url:String,d:Object,w:Number,h:Number):void{
+				//				mm.loadModule("2011010812342.swf",Entrypt.uncompress(evt.target.data as ByteArray,KEY));
+				WindowProxy.getInstance().getTitleWindow(url,evt.target.data as ByteArray,d,this,false,w,h);
+			}
+
+			protected function hdividedbox1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Alert.show('d');
+			}
+
+			
+
+			
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+	
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<containers:MDICanvas width="100%" height="100%" id="mdi" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<!--mx:ModuleLoader x="0" y="5" height="86" width="190" url="assets/img/sb.jpg"/-->
+		<mx:Canvas  x="0" y="0" height="92" width="261"  backgroundColor="#FFFEFE">
+			<mx:SWFLoader width="100%" height="100%" source="assets/img/sb.jpg"/>
+		</mx:Canvas>
+		
+		<mx:Panel width="100%" height="100%" styleName="windstyle1" id="win">
+			
+			<s:VGroup width="100%" height="100%" gap="-1">
+		 		<!--mx:ApplicationControlBar  width="100%" height="57" paddingTop="0" paddingLeft="0" paddingRight="0" paddingBottom="0">
+					<mx:Canvas width="100%" height="100%">
+						<s:Button label="Button" click="button1_clickHandler(event)" x="16" y="12"/>
+					</mx:Canvas>
+				</mx:ApplicationControlBar-->
+			<mx:Panel width="100%" height="57" styleName="windstyle1"  >
+				<s:Button label="Button" click="button1_clickHandler(event)"/>
+			</mx:Panel>
+	 
+		<mx:HDividedBox width="100%" height="100%"    dividerDrag="hdividedbox_dividerDragHandler(event)" horizontalGap="10" dividerAlpha="1" dividerPress="if((sup.selectedChild is IFrame))(sup.selectedChild as IFrame).mouseEnabled=false;" dividerRelease="if((sup.selectedChild is IFrame))(sup.selectedChild as IFrame).mouseEnabled=true;" direction="vertical" dividerSkin="@Embed(source='assets/img/page/refresh.gif')" dividerColor="#B6A1A0">
+			<mx:VBox verticalGap="5" width="100%" height="100%" paddingTop="1">
+			   <mx:HBox width="100%" horizontalGap="0" id="menushow">
+				<mx:ApplicationControlBar width="100%" paddingTop="-2" paddingBottom="-1" minWidth="800"> 
+					<mx:Spacer width="243"/><mx:ToggleButtonBar dataProvider="{sup}" id="tbb" height="34" buttonWidth="100" fontSize="16"/>
+				    <mx:Spacer width="100%"/><s:Label text="欢迎:{user.userName_ch}" id="userinfo_id"/>
+				</mx:ApplicationControlBar>
+				  <mx:Button click="{stage.displayState = StageDisplayState.FULL_SCREEN ;}" label="全屏浏览"/>
+				  <component:LoginRegister width="70" id="loginregister"/><s:Label text="使用帮助" paddingTop="12" paddingRight="5" click="{WindowProxy.getInstance().getModuleWindow('mvc/view/front/help/UserHelper.swf')}"/>
+			   </mx:HBox>
+				   <mx:ViewStack id="sup" width="100%" height="100%" change="sup_tabChildrenChangeHandler(event)">
+					<mx:ModuleLoader showEffect="WipeDown" hideEffect="WipeUp" label="首页" url="ball/PicBall.swf" creationComplete="{spxx.createDeferredContent()}"/>
+					<mx:ModuleLoader showEffect="WipeDown" hideEffect="WipeUp" label="商品" url="mvc/view/front/product/component/ProductShowPanel.swf" id="spxx"/>
+				</mx:ViewStack>
+			</mx:VBox>
+			
+			<mx:VBox width="12%"  id="menushow1" minWidth="160" height="100%" verticalGap="0" includeInLayout="false">
+		       <mx:HBox horizontalGap="0" id="loginregister1">
+				<mx:LinkButton x="51" y="22" id="login" label="登录" click="login_or_register_clickHandler(event,'default')"/>
+				<mx:LinkButton x="51" y="22" id="register" label="注册" click="login_or_register_clickHandler(event,'Register')"/>
+			   </mx:HBox>
+				<mx:LinkButton id="order" label="订单总数:10 金额:10000" letterSpacing="0" textAlign="left" width="100%" includeInLayout="false" visible="false"/>
+				<s:HGroup   width="100%" gap="0">
+					<mx:Image id="imgae"  source="./assets/img/application_side_expand.png" click="image_clickHandler(event)" toolTip="打开导航条菜单"/>	
+					<mx:LinkButton id="sp" width="100%" label="意见与建议" click="sp_clickHandler(event)"/>
+				</s:HGroup >
+			    <commont:RightComponent borderAlpha="1" borderColor="#E9ECEE" borderStyle="solid" id="menuTree"  width="100%" height="100%"/>
+				<!--mx:Tree id="menuTree" dataProvider="{treeData}" width="100%" height="100%" itemClick="tree_ClickHandler(event)" defaultLeafIcon="{null}">
+					
+				</mx:Tree-->
+			</mx:VBox>
+		</mx:HDividedBox>
+	</s:VGroup>
+			
+	</mx:Panel>
+</containers:MDICanvas>
+</mx:Application>

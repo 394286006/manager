@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="absolute" width="400" height="300" creationComplete="module1_creationCompleteHandler(event)" xmlns:controls="book.controls.*" >
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import book.controls.FlexBook;
+			
+			import mx.controls.Alert;
+			import mx.controls.Label;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			
+			}
+			private function randomColor():uint
+			{
+				return (Math.floor(Math.random() * 0xAA) << 16) +
+					(Math.floor(Math.random() * 0xAA) << 8) +
+					Math.floor(Math.random() * 0xAA);
+			}
+
+
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<controls:FlexBook width="100%" height="100%" backgroundColor="#77B79B" 
+					   itemSize="halfPage"  activeGrabArea="corners" animateCurrentPageIndex="true" edgeAndCornerSize="50" >
+		<controls:cover>
+			<mx:Canvas>
+				<s:Button click="button1_clickHandler(event)" label="关闭"/>
+					<s:Label text="front"/>
+			</mx:Canvas>
+			
+		</controls:cover>
+		<controls:backCover>
+			<s:Label text="back"/>
+		</controls:backCover>
+		<mx:Canvas width="100%" height="100%">
+			<s:Label text="test"/>
+		</mx:Canvas>
+		<mx:Canvas width="100%" height="100%">
+			<s:Label text="test1"/>
+		</mx:Canvas>
+		<mx:Canvas width="100%" height="100%">
+			<s:Label text="test"/>
+		</mx:Canvas>
+		<mx:Canvas width="100%" height="100%">
+			<s:Label text="test1"/>
+		</mx:Canvas>
+	</controls:FlexBook>
+	
+</mx:Module>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" gap="0">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Label text="欢迎:"/>
+	<s:Label text="1234567ee" id="login_name"/><mx:Spacer width="100%"/>
+	<s:ToggleButton label="退出" id="exit_id" width="46"/>
+</s:HGroup>

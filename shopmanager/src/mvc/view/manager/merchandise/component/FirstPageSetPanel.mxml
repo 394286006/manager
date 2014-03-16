@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" name="首页设置" width="700" height="400"
+		   initialize="module1_initializeHandler(event)" creationComplete="createCompleteHandler(event)">
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import minn.event.MinnMessageEvent;
+			import minn.event.MinnMessageEventManager;
+			
+			import mvc.model.merchandise.vo.Merchandise;
+			import mvc.model.merchandise.vo.Photo;
+			import mvc.view.manager.merchandise.event.MerchandiseEvent;
+			
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			[Bindable]
+			private var _merchandise:Merchandise;
+
+			[Bindable]
+			private var _photos2:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var _photos1:ArrayCollection=new ArrayCollection();
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(this.parent.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				_merchandise=e.data.item as Merchandise;
+//				sel_img_id.source=Config.UPLOAD_DIR_IMALEVEL2+_merchandise._photos.;
+				var arr:Array=_merchandise._photos as Array;
+				var ac:ArrayCollection=new ArrayCollection();
+				for(var i:int=0;i<arr.length;i++){
+					var v:Photo=new Photo();
+					ac.addItem(v);
+				}
+				MinnUtil.copyProperty(ac,arr);
+				_photos1.addAll(ac);
+				
+			}
+			
+			private function createCompleteHandler(evt:FlexEvent):void{
+				appFacade.startup(AppCommand.MERCHANDISE_FIRSTPAGESET_PANEL_STARTUP,this);
+				this.dispatchEvent(new MerchandiseEvent(MerchandiseEvent.PHOTO_MERCHANDISE_FIRSTPAGESET_QUERY,{item:{_sid:this.parentApplication.PRIVATEKEY}}));
+			}
+			
+			/**
+			 * 查询结果回调函数
+			 **/ 
+			public function invokeQuery(arr:ArrayCollection):void{
+				_photos2.removeAll();
+				_photos2.addAll(arr);
+//								Alert.show(_photos.length+'');
+			}
+
+			
+
+			protected function big_photo_id_itemClickHandler(event:ListEvent):void
+			{
+				// TODO Auto-generated method stub
+				first_img_id.source=Config.UPLOAD_DIR_IMALEVEL2+(big_photo_id.selectedItem as Photo).imgpath;
+			}
+
+
+			protected function sel_photo_id_itemClickHandler(event:ListEvent):void
+			{
+				// TODO Auto-generated method stub
+				var selitem:Photo=sel_photo_id.selectedItem as Photo;
+				sel_img_id.source=Config.UPLOAD_DIR_IMALEVEL2+selitem.imgpath;
+				
+				for(var i:int=0;i<_photos2.length;i++){
+					var p:Photo=_photos2.getItemAt(i) as Photo;
+					if(p.mcd_id==selitem.mcd_id){
+						big_photo_id.selectedIndex=i;
+						add_id.enabled=false;
+						replace_id.enabled=true;
+					}
+				}
+			}
+
+
+			protected function add_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_photos2.length>6){
+					Alert.show("首页图片不能大于6张!","提示");
+					return;
+				}
+				if(!sel_photo_id.selectedItem){
+					Alert.show("请先选择左边列表中准备的其中一条数据!","提示");
+					return;
+				}
+				_photos2.addItem(sel_photo_id.selectedItem as Photo);
+				sel_photo_id.selectedIndex=-1;
+			}
+
+
+			protected function replace_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(big_photo_id.selectedItem){
+				_photos2.setItemAt(sel_photo_id.selectedItem,big_photo_id.selectedIndex);
+				}else{
+					Alert.show("请先选择右边需要替换的数据!","提示");
+				}
+			}
+
+
+			protected function save_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var obj:Object=new Object();
+				obj.photos=_photos2.toArray();
+				obj._sid=this.parentApplication.PRIVATEKEY;
+				this.dispatchEvent(new MerchandiseEvent(MerchandiseEvent.PHOTO_MERCHANDISE_FIRSTPAGESET,{item:obj}));
+			}
+			public function cancel_clickHandler(evt:MouseEvent=null):void
+			{
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:HBox horizontalGap="0" height="100%" width="100%">
+		<mx:VBox height="100%" width="110">
+			<mx:Label text="准备设置的数据"/>
+			<mx:HBox horizontalGap="0">
+				<mx:Label text="名称:"/><mx:Label text="{_merchandise.name}" id="name_id"/>
+			</mx:HBox>
+			<mx:DataGrid height="100%" id="sel_photo_id" dataProvider="{_photos1}" itemClick="sel_photo_id_itemClickHandler(event)">
+				<mx:columns>
+					<mx:DataGridColumn headerText="大图名称" dataField="imgname"/>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:VBox>
+		<mx:VBox height="100%" width="150">
+			<mx:Button label="添加到列表中" id="add_id" click="add_clickHandler(event)"/>
+			<mx:Button label="替换到列表中" id="replace_id" click="replace_clickHandler(event)"/>
+	   <mx:Label text="首页图片"/>
+		<mx:DataGrid height="100%"  dataProvider="{_photos2}" id="big_photo_id" itemClick="big_photo_id_itemClickHandler(event)">
+			<mx:columns>
+				<mx:DataGridColumn headerText="大图名称" dataField="imgname"/>
+			</mx:columns>
+		</mx:DataGrid>
+		</mx:VBox>
+		<mx:VBox verticalGap="0">
+			<mx:Label text="准"/>
+			<mx:Label text="备"/>
+			<mx:Label text="设"/>
+			<mx:Label text="置"/>
+			<mx:Label text="的"/>
+			<mx:Label text="图"/>
+			<mx:Label text="片"/>
+			<mx:Spacer height="50"/>
+			<mx:Label text="首"/>
+			<mx:Label text="页"/>
+			<mx:Label text="图"/>
+			<mx:Label text="片"/>
+		</mx:VBox>
+		<mx:VBox verticalGap="1">
+			<mx:Image id="sel_img_id" width="260" height="180"/>
+			<mx:Image id="first_img_id" width="260" height="180"/>
+		</mx:VBox>
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Spacer width="220"/><mx:Button left="200" width="80" label="确定" click="save_clickHandler(event)"/>
+		<mx:Button label="取消" click="cancel_clickHandler(event)"/>
+	</mx:HBox>
+   
+</mx:Module>

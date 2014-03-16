@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   name="商品类型管理"
+		    layout="vertical" width="100%" height="100%" xmlns:common="minn.common.*" 
+		   initialize="module1_initializeHandler(event)" creationComplete="creationCompleteHandler(event)" remove="module1_removeHandler(event)">
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import minn.common.Entrypt;
+			
+			import mvc.model.ctype.vo.Ctype;
+			import mvc.view.manager.ctype.event.CtypeEvent;
+			private var win:TitleWindow=null;
+			private var _ctype:Ctype=null;
+			[Bindable]
+			public var ctypes:ArrayCollection=new ArrayCollection();
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(MinnMessageEvent.MESSAGE+"CtypePanel",messageHandler);
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				_ctype=e.data.item as Ctype;
+//				var op:Operator=e.data.item as Operator;
+				var ee:CtypeEvent=null;
+				if(_ctype._color=='1')
+					ee=new CtypeEvent(CtypeEvent.CTYPE_ADD,e.data,true);
+				else if(_ctype._color=='2')
+					ee=new CtypeEvent(CtypeEvent.CTYPE_MODIFY,e.data,true);
+				this.dispatchEvent(ee);
+			}
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+//				pageBar.recordCount=30;
+				pageBar.pageSize=3;
+				pageBar.addEventListener(PageEvent.PAGE_CHANGE,query_clickHandler);
+				appFacade.startup(AppCommand.CTYPE_MNG_STARTUP,this);
+			}
+			
+			
+			
+			
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.removeEventListener(FlexEvent.CREATION_COMPLETE,creationCompleteHandler);
+			}
+			
+			protected function add_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var url:String="mvc/view/manager/ctype/component/CtypePanel"+Config.SUBFFIX;
+				
+				 _ctype=new Ctype();
+				_ctype._color='1';
+				_ctype._sid=this.parentApplication.PRIVATEKEY;
+				Entrypt.loadswfObject(url,function(evt:Event):void{
+					loadSpTitleswfCompleteHandler(evt,"CtypePanel.swf",{index:-1,item:_ctype});
+				});
+//				win=WindowProxy.getInstance().getSpTitleWindow(url,{index:-1,item:_ctype});
+//				WindowProxy.getInstance().getSpTitleWindow(AppCommand.OPERATORPANEL_STARTUP,url);
+				//				parent.mdiCanvas.windowManager.addCenter(win);
+			}
+			private function loadSpTitleswfCompleteHandler(evt:Event,url:String,d:Object):void{
+				//				mm.loadModule("2011010812342.swf",Entrypt.uncompress(evt.target.data as ByteArray,KEY));
+				if(Config.SUBFFIX==Config.FLAG)
+					WindowProxy.getInstance().getSpTitleWindow(url,evt.target.data as ByteArray,d,this);
+					else
+				WindowProxy.getInstance().getSpTitleWindow(url,Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),d,this);
+			}
+			
+			protected function modify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var url:String="mvc/view/manager/ctype/component/CtypePanel"+Config.SUBFFIX;
+				_ctype=ctype_id.selectedItem as Ctype;
+				_ctype._color='3';
+				_ctype._sid=this.parentApplication.PRIVATEKEY;
+				Entrypt.loadswfObject(url,function(evt:Event):void{
+					loadSpTitleswfCompleteHandler(evt,"CtypePanel.swf",{index:ctype_id.selectedIndex,item:_ctype});
+				});
+//				win=WindowProxy.getInstance().getSpTitleWindow(url,{index:ctype_id.selectedIndex,item:_ctype}); 
+//				WindowProxy.getInstance().getSpTitleWindow(AppCommand.OPERATORPANEL_STARTUP,url);
+			}
+			
+			
+			protected function del_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+			
+			public function closeWin():void{
+				win.dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+			}
+			/**
+			 *
+			 **/ 
+			public function invokeAdd(ctype:Ctype):void{
+				MinnUtil.reverse(ctypes);
+				ctypes.addItem(ctype);
+				MinnUtil.reverse(ctypes);
+				closeWin();
+			}
+			public function invokeUpdate(info:Object):void{
+				ctypes.setItemAt(info.item,info.index);
+				closeWin();
+			}
+			
+			public function invokeDel(message:String):void
+			{
+				ctypes.removeItemAt(ctypes.getItemIndex(ctype_id.selectedItem));
+			}
+			
+			private function query_clickHandler(e:Event=null):void{
+				var condition:Object=new Object();
+				if(e is PageEvent){
+					condition.pageIndex=(e as PageEvent).pageIndex;
+					condition.pageSize=(e as PageEvent).pageSize;
+					condition.recordCount=(e as PageEvent).recordCount;
+				}else{
+					pageBar.recordCount = -1;
+					pageBar.pageIndex = 0;
+					condition.pageIndex=pageBar.pageIndex;
+					condition.pageSize=pageBar.pageSize;
+					condition.recordCount=pageBar.recordCount;
+				}
+				//				Alert.show(condition.pageIndex);
+				condition.type_name=name_id.text;
+				this.dispatchEvent(new CtypeEvent(CtypeEvent.CTYPE_QUERY,{item:condition},true));
+			}
+			
+			public function invokeQuery(arr:ArrayCollection,recordCount:int):void{
+				pageBar.recordCount=recordCount;
+				ctypes.removeAll();
+				ctype_id.itemRenderer=null;
+				ctypes.addAll(arr);
+//				Alert.show(ctypes.length+'');
+			}
+			
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:states>
+		<s:State name="default"/>    
+		<s:State name="qry"/>
+	</mx:states>
+	<mx:HBox width="100%">
+		<common:PageToolBar id="pageBar"/>
+		<mx:Spacer width="100%"/>
+		<s:ToggleButton label="显示条件查询" click="currentState='qry'" click.qry="currentState=''" label.qry="隐藏条件查询" />
+		<s:ToggleButton label="添加" click="add_clickHandler(event)"/>
+		<s:ToggleButton label="修改" click="modify_clickHandler(event)"/>
+		<s:ToggleButton label="删除" click="del_clickHandler(event)"/>
+	</mx:HBox>
+	<mx:HBox width="100%" includeIn="qry">
+		<s:Label text="类别" />
+		<s:TextInput id="name_id"/>
+		<s:Button label="查找"  click="query_clickHandler(event)"/>
+		
+	</mx:HBox>
+	<mx:DataGrid width="100%" height="100%" dataProvider="{ctypes}" id="ctype_id">
+		<mx:columns>
+			<mx:DataGridColumn headerText="类别" dataField="name" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="描述" dataField="descript" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="菜单级别" dataField="_categoryName" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="父菜单" dataField="_parentName" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="创建人" dataField="_creatorName" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="创建时间" dataField="createDate" itemRenderer="minn.common.MinnLabel"/>
+		</mx:columns>
+	</mx:DataGrid>
+</mx:Module>

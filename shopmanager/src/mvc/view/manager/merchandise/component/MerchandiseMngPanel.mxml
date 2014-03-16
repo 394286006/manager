@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   name="商品管理"
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="horizontal" width="100%" height="100%" xmlns:common="minn.common.*" 
+		   initialize="module1_initializeHandler(event)" creationComplete="creationCompleteHandler(event)" removed="module1_removeHandler(event)">
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import com.adobe.serialization.json.JSON;
+			
+			import minn.common.CMManager;
+			import minn.common.Entrypt;
+			
+			import mvc.model.ctype.vo.Ctype;
+			import mvc.model.ctype.vo.CtypeMenu;
+			import mvc.model.merchandise.vo.Merchandise;
+			import mvc.view.manager.merchandise.event.MerchandiseEvent;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Tree;
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.events.MenuEvent;
+			
+			
+			[Bindable]
+			private var merchandises:ArrayCollection=new ArrayCollection();
+			var myContextMenu:ContextMenu=new ContextMenu();
+			private var textLabel:String = "Right Click";
+			private var redRectangle:Sprite;
+			private var label1:TextField;
+			private var size:uint = 100;
+			private var black:uint = 0x000000;
+			private var red:uint = 0xFF0000;
+//			[Bindable]
+//			private var treeData:Array=[{label:'root1',children:[{label:"Mail Box",children:[{label:"test1",data:1},{label:"test2",data:1}]},
+//				{label:"Mail Box1",children:[{label:"test2",data:1}]}]}
+//			];
+			
+			[Bindable]
+			private var _treeMenuData:XMLList =null;
+//				<>
+//					<menuitem name="系统管理" data="0">
+//						<menuitem name="操作员管理" url="mvc/view/manager/operator/component/OperatorMngPanel.swf"/>
+//						<menuitem name="用户管理" url="mvc/view/manager/user/component/UserMngPanel.swf"/>
+//						<menuitem name="付款方式管理" url="mvc/view/manager/payway/component/PaywayMngPanel.swf"/>
+//					</menuitem>
+//					<menuitem name="商品管理" data="top">
+//						<menuitem name="商品管理" url="mvc/view/manager/merchandise/component/MerchandiseMngPanel.swf"/>
+//						<menuitem name="商品类型管理" url="mvc/view/manager/ctype/component/CtypeMngPanel.swf"/>
+//					</menuitem>
+//					<menuitem name="订单管理" data="top">
+//						<menuitem name="查看订单" url="mvc/view/manager/order/component/OrderMngPanel.swf"/>
+//					</menuitem>
+//				</>;
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+//				var customMenuItem1:ContextMenuItem = new ContextMenuItem("Flex SDK " + mx_internal::VERSION, false, false);
+//				var customMenuItem2:ContextMenuItem = new ContextMenuItem("Player " + Capabilities.version, false, false);
+//				var contextMenuCustomItems:Array = new Array();
+//				FlexGlobals.topLevelApplication.contextMenu.customItems=contextMenuCustomItems;
+//				contextMenuCustomItems.push(customMenuItem1);
+//				contextMenuCustomItems.push(customMenuItem2);
+				MinnMessageEventManager.getInstance().addEventListener(this.parent.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+				MinnMessageEventManager.getInstance().addEventListener(MinnMessageEvent.MESSAGE+"CtypePanel",cTypeMessageHandler);
+				MinnMessageEventManager.getInstance().addEventListener(MinnMessageEvent.MESSAGE+"MerchandisePanel",merchandiseMessageHandler);
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				
+			}
+			private function cTypeMessageHandler(e:MinnMessageEvent):void{
+				var _ctype:Object=e.data.item;
+				if(e.data.method=="add"){
+					if(category_id.selectedItem&&XML(_ctype).@category!='0'){
+						category_id.dataDescriptor.addChildAt(category_id.selectedItem,XML(_ctype),category_id.selectedIndex,true);
+					}else{
+						category_id.dataDescriptor.addChildAt(_treeMenuData,XML(_ctype),_treeMenuData.length);
+					}
+					
+				}
+				else{
+					var p:Object=category_id.selectedItem.parent();
+					var ind:int=category_id.selectedItem.childIndex();
+					var t:XML=XML(_ctype);
+					if(XML(category_id.selectedItem).children().length()>0){
+						var chi:Object=XML(category_id.selectedItem).children();
+						t=XML(_ctype).appendChild(XML(chi));
+					}
+					category_id.dataDescriptor.removeChildAt(p,XML(category_id.selectedItem),ind,category_id.dataProvider);
+					category_id.dataDescriptor.addChildAt(p,t,ind,category_id.dataProvider);
+				}
+			}
+			private function merchandiseMessageHandler(e:MinnMessageEvent):void{
+//				var _ctype:Object=e.data.item;
+				//				var op:Operator=e.data.item as Operator;
+				//				Alert.show(_ctype.color);
+				var mer:Merchandise=e.data.item as Merchandise;
+				if(e.data.method=="add"){
+					MinnUtil.reverse(merchandises);
+					merchandises.addItem(mer);
+					MinnUtil.reverse(merchandises);
+				}else{
+					merchandises.setItemAt(mer,e.data.index);
+				}
+					
+				//				else if(_ctype.color==2)
+				//					ee=new MerchandiseEvent(MerchandiseEvent.CTYPE_MERCHANDISE_MODIFY,e.data,true);
+				//				this.dispatchEvent(ee);
+			}
+			
+			private var ctypemenu:ContextMenu=new ContextMenu();
+			private var maxcategorymenuitem:ContextMenuItem=null;
+			private var mincategorymenuitem:ContextMenuItem=null;
+			private var modifycategorymenuitem:ContextMenuItem=null;
+			private var delcategorymenuitem:ContextMenuItem=null;
+			protected function creationCompleteHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				pageBar.recordCount=30;
+				this.appFacade.startup(AppCommand.MERCHANDISE_MNG_STARTUP,this);
+//				removeDefaultItems();
+//				addChildren();
+//				addCustomMenuItems();
+				
+				ctypemenu.hideBuiltInItems();
+				ctypemenu.clipboardMenu=false;
+				maxcategorymenuitem = new ContextMenuItem("添加大类", false, true);
+				mincategorymenuitem = new ContextMenuItem("添加商品类型", false, false);
+				modifycategorymenuitem = new ContextMenuItem("修改", false, true);
+				delcategorymenuitem = new ContextMenuItem("--删除--", false, true);
+				maxcategorymenuitem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT,maxCategoryAddHandler);
+				mincategorymenuitem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT,categoryAddHandler);
+				modifycategorymenuitem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT,categoryModifyHndler);
+				delcategorymenuitem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT,categoryDelHndler);
+				var contextMenuCustomItems:Array = new Array();
+				contextMenuCustomItems.push(maxcategorymenuitem);
+				contextMenuCustomItems.push(mincategorymenuitem);
+				contextMenuCustomItems.push(modifycategorymenuitem);
+				contextMenuCustomItems.push(delcategorymenuitem);
+				ctypemenu.customItems=contextMenuCustomItems;
+				category_id.contextMenu=ctypemenu;
+//				category_id.addEventListener(MouseEvent.MOUSE_DOWN,function(e:MouseEvent):void{
+//				});
+			
+//				 cmm = new CMManager(category_id);  
+//				var cn:ContextMenuBuiltInItems= cmm.builtInItems;
+//				cmm.hideBuiltInItems();
+//				cmm.add("添加大类",myHandler);
+//				cmm.add("添加商品类型",myHandler);
+				this.dispatchEvent(new MerchandiseEvent(MerchandiseEvent.CTYPE_TREE_MERCHANDISE_QUERY,{item:{_sid:this.parentApplication.PRIVATEKEY}}));
+//				trace(JSON.encode(_treeMenuData));
+			}
+			private function maxCategoryAddHandler(e:ContextMenuEvent):void{
+				
+				var url:String="mvc/view/manager/ctype/component/CtypePanel"+Config.SUBFFIX;
+				//				var menuid:String='';
+				var _ctype:Ctype=new Ctype();
+//				if(category_id.selectedItem)
+//					_ctype.pid=category_id.selectedItem.@id;
+				_ctype._color='1';
+				_ctype._sid=this.parentApplication.PRIVATEKEY;
+				Entrypt.loadswfObject(url,function(evt:Event):void{
+					loadSpTitleswfCompleteHandler(evt,"CtypePanel.swf",{index:-1,item:_ctype,ctypes:_treeMenuData.children().copy()});
+				});
+//				WindowProxy.getInstance().getSpTitleWindow(url,);
+				
+				
+			}
+			
+			private function loadSpTitleswfCompleteHandler(evt:Event,url:String,d:Object):void{
+				//				mm.loadModule("2011010812342.swf",Entrypt.uncompress(evt.target.data as ByteArray,KEY));
+				if(Config.SUBFFIX==Config.FLAG)
+					WindowProxy.getInstance().getSpTitleWindow(url,evt.target.data as ByteArray,d,this);
+				else
+				WindowProxy.getInstance().getSpTitleWindow(url,Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),d,this);
+			}
+			private function categoryAddHandler(e:ContextMenuEvent):void{
+			
+				var url:String="mvc/view/manager/ctype/component/CtypePanel"+Config.SUBFFIX;
+//				var menuid:String='';
+				var _ctype:Ctype=new Ctype();
+				if(category_id.selectedItem)
+					_ctype.pid=category_id.selectedItem.@id;
+				_ctype._color='1';
+				_ctype._sid=this.parentApplication.PRIVATEKEY;
+				Entrypt.loadswfObject(url,function(evt:Event):void{
+					loadSpTitleswfCompleteHandler(evt,"mvc/view/manager/ctype/component/CtypePanel.swf",{index:-1,item:_ctype,ctypes:_treeMenuData.children()});
+				});
+//				WindowProxy.getInstance().getSpTitleWindow(url,{index:-1,item:_ctype,ctypes:_treeMenuData.children()});
+				
+			
+			}
+			private function categoryModifyHndler(e:ContextMenuEvent):void{
+				var url:String="mvc/view/manager/ctype/component/CtypePanel"+Config.SUBFFIX;
+		 		var _ctype:Ctype=new Ctype();
+				MinnUtil.propertyMap(XML(category_id.selectedItem),_ctype);
+				_ctype._color='1';
+				_ctype._sid=this.parentApplication.PRIVATEKEY;
+				Entrypt.loadswfObject(url,function(evt:Event):void{
+					loadSpTitleswfCompleteHandler(evt,"mvc/view/manager/ctype/component/CtypePanel.swf",{index:-1,item:_ctype,ctypes:_treeMenuData.children().copy()});
+				});
+//				WindowProxy.getInstance().getSpTitleWindow(url,{index:-1,item:_ctype,ctypes:_treeMenuData.children().copy()});
+				
+			}
+			
+			private function categoryDelHndler(e:ContextMenuEvent):void{
+//			  var item:Object=new Object();
+//			 item.id=category_id.selectedItem.@id;
+			  if(!category_id.selectedItem){
+				  Alert.show("请先选择数据!","提示");
+				  return;
+			  }	
+			 var ct:Ctype=new Ctype();
+			 ct.id=category_id.selectedItem.@id;
+			 ct._sid=this.parentApplication.PRIVATEKEY;
+			 if(XMLList(category_id.selectedItem).children().length()<=0){
+				 this.dispatchEvent(new MerchandiseEvent(MerchandiseEvent.CTYPE_TREE_MERCHANDISE_DELETE,{item:ct}));
+			 }else{
+				 Alert.show("请先删除子节点","提示");
+			 }
+          
+			}
+	        
+		
+			
+			
+			protected function module1_removeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				if(event.target==this){
+			    	this.removeEventListener(FlexEvent.CREATION_COMPLETE,creationCompleteHandler);
+					MinnMessageEventManager.getInstance().removeEventListener(this.parent.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+					MinnMessageEventManager.getInstance().removeEventListener(MinnMessageEvent.MESSAGE+"CtypePanel",cTypeMessageHandler);
+					MinnMessageEventManager.getInstance().removeEventListener(MinnMessageEvent.MESSAGE+"MerchandisePanel",merchandiseMessageHandler);
+//					category_id.dataProvider=null;
+				
+					mer_id.dataProvider=null;
+					mer_id.itemRenderer=null;
+				}
+			}
+			
+			
+			protected function add_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var url:String="mvc/view/manager/merchandise/component/MerchandisePanel"+Config.SUBFFIX;
+					var _merchandise:Merchandise=new Merchandise();
+					_merchandise._color='1';
+					_merchandise._sid=this.parentApplication.PRIVATEKEY;
+					Entrypt.loadswfObject("mvc/view/manager/merchandise/component/MerchandisePanel"+Config.SUBFFIX,function(evt:Event):void{
+						loadTitleswfCompleteHandler(evt,"mvc/view/manager/merchandise/component/MerchandisePanel.swf",{method:"add",index:-1,item:_merchandise,ctypes:_treeMenuData.children()});
+					});
+//					WindowProxy.getInstance().getTitleWindow(url,{method:"add",index:-1,item:_merchandise,ctypes:_treeMenuData.children()});
+			
+				//				parent.mdiCanvas.windowManager.addCenter(win);
+			}
+//			private function loadswfCompleteHandler(evt:Event,_merchandise:Merchandise):void{
+//				//				mm.loadModule("2011010812342.swf",Entrypt.uncompress(evt.target.data as ByteArray,KEY));
+//				WindowProxy.getInstance().getTitleWindow("mvc/view/front/user/component/LoginOrRegisterPanel.swf",evt.target.data as ByteArray,{method:"add",index:-1,item:_merchandise,ctypes:_treeMenuData.children()},this);
+//			}
+			 
+			protected function modify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(mer_id.selectedItem){
+					var url:String="mvc/view/manager/merchandise/component/MerchandisePanel"+Config.SUBFFIX;
+					var _mer:Merchandise=mer_id.selectedItem as Merchandise;
+				
+					_mer._color="2";
+					_mer._sid=this.parentApplication.PRIVATEKEY;
+					Entrypt.loadswfObject(url,function(evt:Event):void{
+						loadTitleswfCompleteHandler(evt,"mvc/view/manager/merchandise/component/MerchandisePanel.swf",{method:"modify",index:mer_id.selectedIndex,item:_mer,ctypes:_treeMenuData.children()});
+					});
+//					WindowProxy.getInstance().getTitleWindow(url,{method:"modify",index:mer_id.selectedIndex,item:_mer,ctypes:_treeMenuData.children()});
+				}else{
+					Alert.show("请先选择数据!","提示");
+				}
+			}
+			private function loadTitleswfCompleteHandler(evt:Event,url:String,d:Object):void{
+				//				mm.loadModule("2011010812342.swf",Entrypt.uncompress(evt.target.data as ByteArray,KEY));
+				if(Config.SUBFFIX==Config.FLAG)
+					WindowProxy.getInstance().getTitleWindow(url,evt.target.data as ByteArray,d,this);
+					else
+				WindowProxy.getInstance().getTitleWindow(url,Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),d,this);
+			}
+			
+			protected function del_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(mer_id.selectedItem)
+				this.dispatchEvent(new MerchandiseEvent(MerchandiseEvent.MERCHANDISE_DEL,{index:mer_id.selectedIndex,item:{_merchandise:mer_id.selectedItem,_sid:this.parentApplication.PRIVATEKEY}},true));
+				else
+				Alert.show("请先选择一条数据!","提示");
+			}
+			public function invokeDel():void
+			{
+				merchandises.removeItemAt(merchandises.getItemIndex(mer_id.selectedItem));
+			}
+//			private function removeDefaultItems():void {
+//				myContextMenu.hideBuiltInItems();
+//				var defaultItems:ContextMenuBuiltInItems = myContextMenu.builtInItems;
+//				defaultItems.print = false;
+//			}
+//			private function addCustomMenuItems():void {
+//				var item:ContextMenuItem = new ContextMenuItem("test");
+//				myContextMenu.customItems.push(item);
+//				item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, menuItemSelectHandler);
+//			}
+			
+			private function menuItemSelectHandler(event:ContextMenuEvent):void {
+				trace("menuItemSelectHandler: " + event);
+//				var textColor:unit = (label.textColor == black) ? red : black;
+//				var bgColor:uint = (label.textColor == black) ? black : red;
+				redRectangle.graphics.clear();
+//				redRectangle.graphics.beginFill(bgColor);
+				redRectangle.graphics.drawRect(0, 0, size, size);
+//				label.textColor = textColor;
+			}
+			
+			/**
+			 * 删除商品类别回调函数
+			 **/ 
+			public function invokeCategoryDelHandler():void{
+				category_id.dataDescriptor.removeChildAt(category_id.selectedItem.parent(),category_id.selectedItem,category_id.selectedItem.childIndex(),category_id.dataProvider);
+			}
+			
+			
+			/**
+			 * 查询菜单树的回调函数 
+			 **/ 
+//           public function invokeCtypeTree(td:ArrayCollection):void{
+//			   _treeMenuData.removeAll();
+//			   _treeMenuData.addAll(td);
+//			    
+//		   }
+			public function invokeCtypeTree(td:XMLList):void{
+				
+				_treeMenuData=td;
+				
+			}
+			private function xml2arr(xml:XMLList,_parent:Array):void{
+				for each(var xmlt:XML in xml){
+					var o:Object=new Object();
+					if(xmlt.hasOwnProperty("@name")){
+						o.name=xmlt.@name;
+					}
+					if(xmlt.hasOwnProperty("@id"))
+						o.id=xmlt.@id;
+					if(xmlt.hasOwnProperty("@pid"))
+						o.pid=xmlt.@pid;
+					if(xmlt.hasOwnProperty("@category"))
+						o.category=xmlt.@category;
+					if(xmlt.hasOwnProperty("@descript"))
+						o.descript=xmlt.@descript;
+					
+					if(xmlt.hasComplexContent()){
+						o.children=new Array();
+						xml2arr(xmlt.children(),o.children);
+					}
+					_parent.push(o);
+				}
+			}
+			/**
+			 * 添加商品类别成功后的回调函数 已过时
+			 **/ 
+			public function invokeAddCtype(o:Object):void{
+//				if(category_id.selectedItem&&XML(o).@category!='0'){
+//				  (category_id.selectedItem as XML).appendChild(XML(o));
+//				}else{
+//						XML(_treeMenuData).appendChild(XML(o));
+//				}
+			}
+			/**
+			 * 向列表中添加商品  已过时
+			 **/ 
+//			public function invokeMerchandiseAdd(mer:Merchandise):void{
+//				MinnUtil.reverse(merchandises);
+//				merchandises.addItem(mer);
+//				MinnUtil.reverse(merchandises);
+//			}
+			
+			/**
+			 * 更新列表中的商品 已过时
+			 **/ 
+			public function invokeMerchandiseUpdate(info:Object):void{
+				merchandises.setItemAt(info.item,info.index);
+			}
+
+			/**
+			 * 
+			 * 菜单树，控制右键小类菜单是否可操作
+			 **/
+			protected function category_id_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(category_id.selectedItem){
+					if(category_id.selectedItem.@pid!=''){
+						mincategorymenuitem.enabled=false;
+					}else{
+						mincategorymenuitem.enabled=true;
+						
+					} 
+				}
+			}
+
+
+			protected function category_id_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+//				this.dispatchEvent(new MerchandiseEvent(MerchandiseEvent.CTYPE_TREE_MERCHANDISE_QUERY));
+			}
+			private function query_clickHandler(e:Event=null):void{
+				var condition:Object=new Object();
+				condition._sid=this.parentApplication.PRIVATEKEY;
+				if(e is PageEvent){
+					condition.pageIndex=(e as PageEvent).pageIndex;
+					condition.pageSize=(e as PageEvent).pageSize;
+					condition.recordCount=(e as PageEvent).recordCount;
+				}else{
+					pageBar.recordCount = -1;
+					pageBar.pageIndex = 0;
+					condition.pageIndex=pageBar.pageIndex;
+					condition.pageSize=pageBar.pageSize;
+					condition.recordCount=pageBar.recordCount;
+				}
+				//				Alert.show(condition.pageIndex);
+				condition.type_name=name_id.text;
+				condition.type_maxcategory_id='';
+				condition.type_category_id='';
+				if(maxcategory_search_id.selectedIndex>-1){
+					var maxcategory_id:String=maxcategory_search_id.selectedItem.@id;
+				  condition.type_maxcategory_id=maxcategory_id;
+				}
+				if(category_search_id.selectedIndex>-1){
+					var category_id:String=category_search_id.selectedItem.@id;
+				  condition.type_category_id=category_id;
+				}
+				
+				this.dispatchEvent(new MerchandiseEvent(MerchandiseEvent.MERCHANDISE_QUERY,{item:condition},true));
+			}
+			
+			/**
+			 * 查询结果回调函数
+			 **/ 
+			public function invokeQuery(arr:ArrayCollection,recordCount:int):void{
+				pageBar.recordCount=recordCount;
+				merchandises.removeAll();
+				mer_id.itemRenderer=null;
+				merchandises.addAll(arr);
+				//				Alert.show(ctypes.length+'');
+			}
+
+			protected function maxcategory_search_id_changeHandler(event:ListEvent):void
+			{
+				// TODO Auto-generated method stub
+				category_search_id.dataProvider=XML(maxcategory_search_id.selectedItem).children();
+				category_search_id.selectedIndex=-1;
+//				category_search_id.dataProvider=maxcategory_search_id.selectedItem.children;
+//				category_search_id.selectedIndex=-1;
+			}
+
+
+			protected function generatorMenu_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.dispatchEvent(new MerchandiseEvent(MerchandiseEvent.CTYPE_MERCHANDISE_GENERATORMENU,null,true));
+			}
+
+
+			protected function firstPage_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(mer_id.selectedItem){
+					var _mer:Merchandise=mer_id.selectedItem as Merchandise;
+					_mer._sid=this.parentApplication.PRIVATEKEY;
+					Entrypt.loadswfObject("mvc/view/manager/merchandise/component/FirstPageSetPanel"+Config.SUBFFIX,function(evt:Event):void{
+						loadTitleswfCompleteHandler(evt,"mvc/view/manager/merchandise/component/FirstPageSetPanel.swf",{method:"modify",item:_mer});
+					});
+//					WindowProxy.getInstance().getTitleWindow("mvc/view/manager/merchandise/component/FirstPageSetPanel.swf",{method:"modify",item:_mer},null,true);
+				}else{
+					Alert.show("请先选择数据","提示");
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	
+	<mx:states>
+		<s:State name="default"/>    
+		<s:State name="qry"/>
+	</mx:states>
+	<mx:VBox height="100%" width="200">
+		<mx:Tree height="100%" width="100%" labelField="@name" showRoot="false" dataProvider="{_treeMenuData}" click="category_id_clickHandler(event)"  id="category_id" creationComplete="category_id_creationCompleteHandler(event)">
+		</mx:Tree>
+		<mx:Button label="生成菜单" click="generatorMenu_clickHandler(event)"/>
+	</mx:VBox>
+	
+		
+	
+	<mx:VBox width="100%" height="100%">
+	<mx:HBox width="100%">
+		<common:PageToolBar id="pageBar">
+		</common:PageToolBar>
+		<mx:Spacer width="100%"/>
+		<s:ToggleButton label="显示条件查询" click="currentState='qry'" click.qry="currentState=''" label.qry="隐藏条件查询" />
+		<s:ToggleButton label="添加" click="add_clickHandler(event)"/>
+		<s:ToggleButton label="修改" click="modify_clickHandler(event)"/>
+		<s:ToggleButton label="删除" click="del_clickHandler(event)"/>
+		<mx:Button label="设置首页" click="firstPage_clickHandler(event)"/>
+	</mx:HBox>
+	<mx:HBox width="100%" includeIn="qry">
+		<s:Label text="商品名称:"/>
+		<s:TextInput id="name_id"/>
+		<s:Label text="商品大类:"/><mx:ComboBox labelField="@name" dataProvider="{_treeMenuData.children()}" change="maxcategory_search_id_changeHandler(event)" selectedIndex="-1" width="150" id="maxcategory_search_id"/>
+		<s:Label text="商品小类:"/><mx:ComboBox  labelField="@name" id="category_search_id" width="150"  selectedIndex="-1"/>
+		<s:Button label="查找" click="query_clickHandler(event)"/><s:Button label="清空条件" click="{name_id.text='';maxcategory_search_id.selectedIndex=-1;category_search_id.selectedIndex=-1;}"/>
+	</mx:HBox>
+	<mx:DataGrid width="100%" height="100%" dataProvider="{merchandises}" id="mer_id">
+		<mx:columns>
+			<mx:DataGridColumn headerText="名称" dataField="name" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="价格" dataField="price" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="大类别" dataField="_ctype._parentName" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="小类别" dataField="_ctype.name" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="数量" dataField="pcount" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="上架时间" dataField="upTime" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="落架时间" dataField="downTime" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="创建人" dataField="_creatorName" itemRenderer="minn.common.MinnLabel"/>
+			<mx:DataGridColumn headerText="小图总数" dataField="_imgcount" itemRenderer="minn.common.MinnLabel"/>
+			
+		</mx:columns>
+	</mx:DataGrid>
+	</mx:VBox>
+</mx:Module>

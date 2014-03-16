@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" creationComplete="createEffect(event);">
+
+	<fx:Script>  
+		<![CDATA[   
+		import mx.effects.Fade;   
+		import flash.events.Event;   
+		private var myFade:Fade = new Fade();   
+		private function createEffect(eventObj:Event):void {   
+		myFade.duration=5000;   
+		// 定义两个目标面板显示其行为效果，这里省略了定义targets，   
+		//而是直接将目标组件组定义在play（）方法中。   
+		myFade.play([myPanel2]);   
+		}   
+		private function playZoom(eventObj:Event):void {   
+		// 设定目标组件是文本区域   
+		///myZoom.target = myTA;   
+		////myZoom.play();   
+		}   
+		]]>  
+	</fx:Script>  
+	<fx:Declarations>
+		<mx:Zoom id="myZoom" duration="2000"  
+				 zoomHeightFrom=".10" zoomWidthFrom=".10"  
+				 zoomHeightTo="1.00" zoomWidthTo="1.00"/>  
+	</fx:Declarations>
+
+	<mx:Panel id="myPanel1" title="文本区域面板" visible="false">  
+		<mx:TextArea id="myTA"/>  
+	</mx:Panel>  
+	
+	<mx:Panel id="myPanel2" title="按钮面板" width="150" height="100"     
+			  horizontalAlign="center" verticalAlign="middle">  
+		<mx:Button id="myButton" label="点击" click="playZoom(event);"/>  
+	</mx:Panel>  
+	
+</s:Application>

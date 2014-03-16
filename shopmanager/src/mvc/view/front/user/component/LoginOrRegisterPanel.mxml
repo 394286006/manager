@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   name="登陆"
+		   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"  layout="horizontal"
+		   initialize="module1_initializeHandler(event)"
+		   creationComplete="module1_creationCompleteHandler(event)"
+		   removed="module1_removeHandler(event)">
+	<fx:Script source="../../../../../mvc/base/FrontBaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mvc.model.user.vo.User;
+			import mvc.view.front.user.event.UserEvent;
+			
+			import skip.ButtonSkinClass;
+			
+			import spark.skins.spark.TitleWindowSkin;
+			
+			[Bindable]
+			public var user:User;
+//			private var appFacade:ApplicationFacade= ApplicationFacade.getInstance();
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+//				MinnMessageEventManager.getInstance().addEventListener(this.parentDocument.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+//				MinnMessageEventManager.getDisp().addEventListener(this.parentDocument.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+			}
+			protected function module1_removeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				//MessageEventManager.getInstance().removeEventListener(this.parentDocument.toString()+MessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+			}
+			
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+//				appFacade.startup(this);
+//				appFacade=FrontAppFacade.getInstance();
+//				Alert.show((appFacade==null).toString());
+				
+//				appFacade.startup(FrontAppCommand.FRONT_USER_STARTUP,this);
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+//				Alert.show(e.data.toString());
+//				if(e.data.toString()=="register")
+//				{
+					currentState=e.data.toString();
+					parentDocument.titleDisplay.text='注册';
+//				}
+			}
+			private function click_Handler():void{
+			
+//				Alert.show(this.parentDocument.parent.toString());
+				if(currentState=='Register'){
+//					 user = new User(userName.text,pwd.text);
+//					TitleWindowSkin(this.parentDocument).parent.width=500;
+//					Alert.show(TitleWindowSkin(this.parentDocument).parent.width.toString());
+					user=new User();
+					user.userName_ch=userName_ch.text;
+					user.userName_en=userName_en.text;
+					dispatchEvent( new UserEvent( UserEvent.USER_REGISTER, {method:'register',item:user},true ) );
+//					Alert.show("注册");
+				}else{
+//					user = new User(userName.text,pwd.text);
+//					Alert.show('登录');
+					user=new User();
+//					user.userName_ch=userName_ch.text;
+					user.userName_en=userName_en.text;
+					user.password=password.text;
+					dispatchEvent( new UserEvent( UserEvent.USER_LOGIN,{method:'login',item:user}, true ) );
+//					Alert.show('登录');
+//					var d:title
+//					var d:TitleWindowSkin
+//					Alert.show(TitleWindowSkin(parentDocument).titleDisplay.text);
+				}
+			}
+
+		
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+
+	</fx:Declarations>
+
+	<mx:states>
+		<s:State name="default"/>    
+		<s:State name="Register"/>
+	</mx:states>
+	
+	<!-- Set title of the Panel container based on the view state.-->
+	
+		<mx:Form id="loginForm" width="100%" height="100%">  
+			<mx:FormItem label="用户名:">
+				<s:TextInput id="userName_en"/>
+			</mx:FormItem>
+			<mx:FormItem label="密      码:">
+				<s:TextInput id="password"/>
+			</mx:FormItem>
+			<mx:FormItem  label="确认密码:" includeIn="Register">
+				<!-- Add a TextInput control to the form for the Register view state. -->           
+				<s:TextInput id="confirm"/>
+			</mx:FormItem>    
+			<mx:FormItem label="中文名" includeIn="Register">
+				<s:TextInput  id="userName_ch"/>
+			</mx:FormItem>
+			<mx:FormItem  label="邮箱:" includeIn="Register">
+				<!-- Add a TextInput control to the form for the Register view state. -->           
+				<s:TextInput id="email"/>
+			</mx:FormItem>    
+			<mx:FormItem label="QQ或MSN" includeIn="Register">
+				<s:TextInput  id="qq_msn"/>
+			</mx:FormItem>
+			<mx:FormItem direction="horizontal">            
+				<!-- Use the LinkButton to change view state.-->                   
+				<mx:Spacer width="100%" id="spacer1"/>
+				<!-- Set label of the control based on the view state.-->
+				<mx:LinkButton id="registerLink"
+							   label="注册?" 
+							   label.Register="登录"
+							   click="currentState='Register';parentDocument.titleDisplay.text='注册';"
+							   click.Register="currentState='';parentDocument.titleDisplay.text='登录';"/>
+				<s:Button id="loginButton" 
+						  label="登录" label.Register="注册" click="click_Handler()" skinClass="skip.ButtonSkinClass"/>
+			</mx:FormItem>            
+		</mx:Form>
+
+   
+	
+</mx:Module>

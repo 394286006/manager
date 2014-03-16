@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   name="消息操作"
+		   layout="absolute" width="400" height="300" 
+		   initialize="module1_initializeHandler(event)" 
+		   creationComplete="module1_creationCompleteHandler(event)"
+		   remove="module1_removeHandler(event)" xmlns:base="com.base.*"
+		   >
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mx.events.ValidationResultEvent;
+			import mx.validators.Validator;
+			[Bindable]
+			private var _mes:PublicMessge=null;
+			private var method:String="add";
+			private var index:int=0;
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(this.parent.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				method=e.data.method;
+				index=e.data.index;
+				_mes=e.data.item as PublicMessge;
+				
+			}
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				appFacade.startup(AppCommand.MESSAGE_PANEL_STARTUP,this);
+				creator_id.text=this.parentApplication.operator.opr_name_ch;
+			}
+			
+			
+			
+			
+			
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+			
+			public function cancel_clickHandler(event:MouseEvent=null):void
+			{
+				
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+			
+			
+			protected function saveOrModify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var validatorErrorArray:Array = Validator.validateAll(validatorArray); 
+				var err:ValidationResultEvent; 
+				var errorMessageArray:Array = []; 
+				if(validatorErrorArray.length>0){
+					for each (err in validatorErrorArray) { 
+						errorMessageArray.push(err.message); 
+					} 
+					
+					if(errorMessageArray.length >0){
+						Alert.show(errorMessageArray.join("\n\n"), "请按照以下错误提示信息重新填写", Alert.OK);
+						
+						return;
+					}
+				}
+				
+				_mes._sid=this.parentApplication.PRIVATEKEY;
+				_mes.title=name_id.text;
+				_mes.content=desc_id.text;
+				var ee:PublicMessageEvent=null;
+				if(_mes.id==''){
+					_mes.creator=this.parentApplication.operator.id;
+					_mes._creatorName=this.parentApplication.operator.opr_name_ch;
+					ee=new PublicMessageEvent(PublicMessageEvent.PUBLICMESSAGE_ADD,{index:index,item:_mes},true);
+				}else{ 
+					_mes.modifyDate=MinnUtil.getCurentDateAndTime();
+					ee=new PublicMessageEvent(PublicMessageEvent.PUBLICMESSAGE_MODIRY,{index:index,item:_mes},true);
+				}
+				this.dispatchEvent(ee);
+			}
+			
+			/**
+			 *  添加数据成功回调函数 
+			 **/
+			public function invokeAdd(o:Object):void{
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"MessagePanel",{method:"add",index:index,item:o},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				cancel_clickHandler();
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+		<fx:Array id="validatorArray">
+			<mx:StringValidator 
+				source="{name_id}" 
+				requiredFieldError="标题不能为空！"
+				property="text" 
+				required="true" />
+			<mx:StringValidator
+				source="{desc_id}" 
+				requiredFieldError="消息内容不能为空！"
+				property="text" 
+				required="true" />
+			
+		</fx:Array>
+	</fx:Declarations>
+	<mx:Form width="100%">
+		<mx:FormItem label="标题">
+			<s:TextInput id="name_id" text="{_mes.title}" width="173"/>
+		</mx:FormItem>
+		<mx:FormItem label="创建人">
+			<mx:Label text="{_mes._creatorName}" width="152" id="creator_id"/>
+		</mx:FormItem>
+		<mx:FormItem label="创建时间">
+			<base:LocalDateField id="dt_id" text1="{_mes.createDate}" dtVisible="false" width="204"/>
+		</mx:FormItem>
+		<mx:FormItem label="消息内容">
+			<mx:TextArea height="154" text="{_mes.content}" id="desc_id" width="297"/>
+		</mx:FormItem> 
+		<mx:HBox width="100%" paddingLeft="40">
+			<s:Button label="确定" click="saveOrModify_clickHandler(event)"/>
+			<s:Button label="取消" click="cancel_clickHandler(event)"/>
+		</mx:HBox>
+		
+	</mx:Form>
+	
+</mx:Module>

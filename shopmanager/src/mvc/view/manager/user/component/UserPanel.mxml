@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/halo" 
+		   name="查看"
+		   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" layout="vertical" verticalGap="0"
+		   initialize="module1_initializeHandler(event)"
+		   creationComplete="module1_creationCompleteHandler(event)"
+		   removed="module1_removeHandler(event)" xmlns:common="minn.common.*">
+	<fx:Style source="assets/css/app_css.css"/>
+	<fx:Script source="../../../../../mvc/base/FrontBaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import flexmdi.containers.PopWin;
+			import flexmdi.events.winresize.WinResizeProxyEvent;
+			
+			import minn.message.Message;
+			
+			import mvc.model.user.vo.User;
+			import mvc.view.front.user.event.UserEvent;
+			
+			import mx.events.ValidationResultEvent;
+			import mx.validators.Validator;
+			
+			
+			[Bindable]
+			private var user:User=null;
+			
+//			private var appFacade:ApplicationFacade= ApplicationFacade.getInstance();
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+//				Alert.show("panel:"+this.parent.toString());
+				MinnMessageEventManager.getInstance().addEventListener(this.parentDocument.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+//				MinnMessageEventManager.getDisp().addEventListener(this.parent.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+			}
+			protected function module1_removeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				//MessageEventManager.getInstance().removeEventListener(this.parentDocument.toString()+MessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+			}
+			
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+//				appFacade.startup(this);
+//				appFacade=FrontAppFacade.getInstance();
+//				Alert.show((appFacade==null).toString());
+//				Alert.show(user.userName_ch);
+				if(user!=null){
+				userName_ch_id.text=user.userName_ch;
+				userName_en_id.text=user.userName_en;
+				password_id.text=user.password;
+				email_id.text=user.email;
+				qq_msn_id.text=user.qq_msn;
+				}
+//				appFacade.startup(FrontAppCommand.FRONT_USER_STARTUP,this);
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				var type:String=e.data.type;
+//				if(e.data.type=="modify")
+                     
+				if(e.data.hasOwnProperty("item")){
+				    user=e.data.item as User;
+					
+				}
+//				}
+			}
+			private function click_Handler():void{
+			
+//				Alert.show(this.parent.parent.toString());
+				var validatorErrorArray:Array = Validator.validateAll(validatorArray); 
+				var err:ValidationResultEvent; 
+				var errorMessageArray:Array = []; 
+				if(validatorErrorArray.length>0){
+					for each (err in validatorErrorArray) { 
+						errorMessageArray.push(err.message); 
+					} 
+					
+					if(errorMessageArray.length >0){
+						Alert.show(errorMessageArray.join("\n\n"), "请按照以下错误提示信息重新填写", Alert.OK);
+						
+						return;
+					}
+				}
+	
+			}
+
+			private function addResultHandler(message:Message):void{
+				Alert.show(message.messageBody);
+			}
+		    private function loginResultHandler(message:Message):void{
+				if(user==null)
+					user=new User();
+//				Alert.show(message.otherInfo.toString());
+				if(message.messageSucess==1){
+					MinnUtil.propertyMap(message.messageBody,user);
+					user.password='';
+//					this.parentApplication.saveLocale(user,so_check_id.selected);
+					this.dispatchEvent(new MinnMessageEvent(MinnMessageEvent.MESSAGE+"loginSucesses",user,true));
+					this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+				}else{
+					Alert.show(message.messageBody);
+				}
+//				Alert.show(message.messageBody);
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+			}
+
+
+			import mx.events.ValidationResultEvent;
+			
+			private function emailValidator_valid(evt:ValidationResultEvent):void {
+//				textInput.errorString = "";
+//				message.text = "";
+//				Alert.show(textInput.text, "You entered a valid email address:");
+				if(email_id.text!=""&&bakemail_id.text!="")
+				    Alert.show(evt.message,"提示");
+				
+			}
+			
+			private function emailValidator_invalid(evt:ValidationResultEvent):void {
+//				textInput.errorString = evt.message;
+//				message.text = evt.message;
+//				if(evt.currentTarget.text!='')
+				if(email_id.text!=""&&bakemail_id.text!="")
+				    Alert.show(evt.message,"提示");
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<fx:Array id="validatorArray">
+			<mx:StringValidator id="userNameValidator"
+								source="{userName_en_id}" 
+								requiredFieldError="用户名不能为空！"
+								property="text" 
+								required="true" />
+			<mx:StringValidator id="password_idValidator" 
+								source="{password_id}" 
+								requiredFieldError="密码不能为空！"
+								property="text" 
+								required="true" />
+			<mx:StringValidator id="userName_ch_idValidator" 
+								source="{userName_ch_id}"  
+								requiredFieldError="昵称不能为空！"
+								property="text" 
+								required="true" />
+			<mx:EmailValidator  id="email_idValidator" 
+								source="{email_id}"  
+								requiredFieldError="email不能为空！"
+								valid="emailValidator_valid(event)"
+								invalid="emailValidator_invalid(event)"
+								property="text" 
+								required="true" />
+			<mx:EmailValidator id="bakemail_idValidator" 
+							   source="{bakemail_id}"  
+							   requiredFieldError="找回密码email不能为空！"
+							   valid="emailValidator_valid(event)"
+							   invalid="emailValidator_invalid(event)"
+							   property="text" 
+							   required="true" />
+		</fx:Array>
+
+	</fx:Declarations>
+
+	<!-- Set title of the Panel container based on the view state.-->
+	
+		<mx:Form id="loginForm" width="100%" height="100%">  
+			<mx:FormItem label="用户名:" >
+				<mx:TextInput id="userName_en_id" text="{user.userName_en}"/>
+			</mx:FormItem>
+			<mx:FormItem label="密      码:"  direction="horizontal">
+					<mx:TextInput id="password_id"  displayAsPassword="true" text="{user.password}"/>			</mx:FormItem>
+			<mx:FormItem label="昵称"  direction="horizontal">
+				<mx:TextInput  id="userName_ch_id" text="{user.userName_ch}"/>
+			</mx:FormItem>
+			<mx:FormItem  label="邮箱:"  direction="horizontal">
+				<!-- Add a TextInput control to the form for the Register view state. -->     
+					<mx:TextInput id="email_id" text="{user.email}"/>			</mx:FormItem>    
+			<mx:FormItem label="QQ或MSN" >
+				<mx:TextInput  id="qq_msn_id" text="{user.qq_msn}"/>
+			</mx:FormItem>
+			<mx:FormItem  label="找回密码邮箱:" direction="horizontal">
+				<!-- Add a TextInput control to the form for the Register view state. -->        
+					<mx:TextInput id="bakemail_id" text="{user.backemail}"/>			</mx:FormItem>    
+		</mx:Form>
+	<mx:Spacer height="10"/>
+     <mx:transitions>
+		 <mx:Transition fromState="*" toState="*">
+			 <mx:Fade duration="800" alphaFrom="0" alphaTo="1" target="{loginForm}"/>
+		 </mx:Transition>
+	 </mx:transitions>
+   
+	
+</mx:Module>

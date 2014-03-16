@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   name="支付方式管理"
+		   layout="absolute" width="262" height="300" 
+		   initialize="module1_initializeHandler(event)" 
+		   creationComplete="module1_creationCompleteHandler(event)"
+		   remove="module1_removeHandler(event)" xmlns:base="com.base.*"
+		   >
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mvc.model.payway.vo.Payway;
+			import mvc.view.manager.payway.event.PaywayEvent;
+			
+			[Bindable]
+			private var _payway:Payway=null;
+			private var method:String="add";
+			private var index:int=0;
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(this.parentDocument.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				method=e.data.method;
+				index=e.data.index;
+				_payway=e.data.item as Payway;
+				
+			}
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				appFacade.startup(AppCommand.PAYWAY_PANEL_STARTUP,this);
+			}
+
+
+		
+
+
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+			public function cancel_clickHandler(event:MouseEvent=null):void
+			{
+				
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+			
+			
+			protected function saveOrModify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				_payway.name=name_id.text;
+				_payway.account=account_id.text;
+				_payway.descript=desc_id.text;
+				var ee:PaywayEvent=null;
+				if(_payway.id==''){
+					ee=new PaywayEvent(PaywayEvent.PAYWAY_ADD,{index:index,item:_payway},true);
+				}else{ 
+					ee=new PaywayEvent(PaywayEvent.PAYWAY_MODIFY,{index:index,item:_payway},true);
+				}
+				this.dispatchEvent(ee);
+			}
+			
+			/**
+			 *  添加数据成功回调函数 
+			 **/
+			public function invokeAdd(o:Object):void{
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"PaywayPanel",{method:"add",index:index,item:o},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				cancel_clickHandler();
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:Form >
+		<mx:FormItem label="支付名称">
+			<s:TextInput id="name_id" text="{_payway.name}"/>
+		</mx:FormItem>
+
+		<mx:FormItem label="关联账号">
+			<s:TextInput id="account_id" text="{_payway.account}"/>
+		</mx:FormItem>
+		<mx:FormItem label="创建人">
+			<mx:Label text="{_payway._creatorName}"/>
+		</mx:FormItem>
+		<mx:FormItem label="创建时间">
+			<base:LocalDateField id="dt_id" text1="{_payway.createDate}" dtVisible="false"/>
+		</mx:FormItem>
+		<mx:FormItem label="支付描述">
+			<mx:TextArea height="96" text="{_payway.descript}" id="desc_id"/>
+		</mx:FormItem> 
+		<mx:HBox width="100%" paddingLeft="40">
+			<s:Button label="确定" click="saveOrModify_clickHandler(event)"/>
+			<s:Button label="取消" click="cancel_clickHandler(event)"/>
+		</mx:HBox>
+		
+	</mx:Form>
+	
+</mx:Module>

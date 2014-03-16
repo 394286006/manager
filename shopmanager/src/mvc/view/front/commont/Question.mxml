@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" height="100%" width="100%" borderAlpha="1"  borderColor="#E9ECEE" borderStyle="solid">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+		
+	
+	<s:Label text="商品种类"/>
+	<s:ComboBox/>
+	<s:Label text="名称"/>
+	<s:TextInput/>
+	<s:Button label="搜索" id="search" chromeColor="#050001" color="#FFFFFF"/>
+</mx:VBox>

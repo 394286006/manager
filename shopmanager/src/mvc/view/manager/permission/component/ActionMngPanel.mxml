@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" name="权限管理" horizontalScrollPolicy="off" verticalScrollPolicy="off" 
+		   layout="vertical" width="100%" height="100%" initialize="module1_initializeHandler(event)" 
+		   creationComplete="module1_creationCompleteHandler(event)">
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mx.events.FlexEvent;
+			
+			[Bindable]
+			private var actions:ArrayCollection=new ArrayCollection();
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(MinnMessageEvent.MESSAGE+"ActionPanel",ActionMessageHandler);
+			}
+			private function ActionMessageHandler(e:MinnMessageEvent):void{
+				//				var _ctype:Object=e.data.item;
+				//				var op:Operator=e.data.item as Operator;
+				//				Alert.show(_ctype.color);
+				var mp:ActionTb=e.data.item as ActionTb;
+				if(e.data.method=="add"){
+					MinnUtil.reverse(actions);
+					actions.addItem(mp);
+					MinnUtil.reverse(actions);
+				}else{
+					actions.setItemAt(mp,e.data.index);
+				}
+				
+				//				else if(_ctype.color==2)
+				//					ee=new MerchandiseEvent(MerchandiseEvent.CTYPE_MERCHANDISE_MODIFY,e.data,true);
+				//				this.dispatchEvent(ee);
+			}
+			
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				appFacade.startup(AppCommand.ACTION_MNG_STARTUP,this);
+				if(!this.parentApplication.operator.hasRole('01')){
+					if(!this.parentApplication.operator.hasAction('14')){
+						add_id.enabled=false;
+						modify_id.enabled=false;
+						del_id.enabled=false;
+					}
+					
+				}
+				actionQuery();	
+			}
+			protected function open_add_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				
+				var url:String="mvc/view/manager/permission/component/ActionPanel";
+				
+				var _mp:ActionTb=new ActionTb();
+				_mp._color='1';
+				_mp._sid=this.parentApplication.PRIVATEKEY;
+				Entrypt.loadswfObject(url+Config.SUBFFIX,function(evt:Event):void{
+					loadswfCompleteHandler(evt,"GroupActionPanel"+new Date()+".swf",_mp,"add");
+				});
+				
+			}
+			private function loadswfCompleteHandler(evt:Event,url:String,_actiontb:ActionTb,method:String,ind:int=-1):void{
+				//				mm.loadModule("2011010812342.swf",Entrypt.uncompress(evt.target.data as ByteArray,KEY));
+				if(Config.SUBFFIX==Config.FLAG)
+					WindowProxy.getInstance().getTitleWindow(url,evt.target.data as ByteArray,{method:method,index:ind,item:_actiontb},this);
+				else
+					WindowProxy.getInstance().getTitleWindow(url,Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),{method:method,index:ind,item:_actiontb},this);
+			}
+			
+			protected function open_modify_clickHandler(event:MouseEvent):void
+			{
+				if(action_id.selectedItem){
+					var url:String="mvc/view/manager/permission/component/ActionPanel"+Config.SUBFFIX;
+					var _mp:ActionTb=action_id.selectedItem as ActionTb;
+					_mp._color="2";
+					Entrypt.loadswfObject(url,function(evt:Event):void{
+						loadswfCompleteHandler(evt,"mvc/view/manager/permission/component/ActionPanel.swf",_mp,"modify",action_id.selectedIndex);
+					});
+				}else{
+					Alert.show("请先选择数据!","提示");
+				}
+			}
+			protected function del_clickHandler(event:MouseEvent):void
+			{
+				if(action_id.selectedItem){
+					var dm:ActionTb=action_id.selectedItem as ActionTb;
+					dm._sid=this.parentApplication.PRIVATEKEY;
+					this.dispatchEvent(new PermissionEvent(PermissionEvent.ACTION_DEL,{index:action_id.selectedIndex,item:dm},true));
+				}else
+					Alert.show("请先选择一条数据!","提示");
+			}
+			protected function save_clickHandler(event:MouseEvent):void
+			{
+				
+			}
+			
+			private function actionQuery():void{
+				var condition:Object=new Object();
+				condition._sid=this.parentApplication.PRIVATEKEY;
+				condition.type=0;
+				this.dispatchEvent(new PermissionEvent(PermissionEvent.ACTION_QUERY,{item:condition},true));
+			}
+			public function invokeActionQuery(arr:ArrayCollection,recordCount:int):void{
+				
+				actions.removeAll();
+				action_id.itemRenderer=null;
+				actions.addAll(arr);
+				//				Alert.show(ctypes.length+'');
+			}
+			public function invokeDel():void
+			{
+				actions.removeItemAt(actions.getItemIndex(action_id.selectedItem));
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+
+		<s:Label text="权限管理"/>
+		<mx:HBox width="100%">
+			<s:ToggleButton label="添加" click="open_add_clickHandler(event)" id="add_id"/>
+			<s:ToggleButton label="修改" click="open_modify_clickHandler(event)" id="modify_id"/>
+			<s:ToggleButton label="删除" click="del_clickHandler(event)" id="del_id"/>
+			<s:ToggleButton label="刷新" click="actionQuery()"/>
+		</mx:HBox>
+		<mx:DataGrid width="100%" height="100%"  fontSize="15" id="action_id" dataProvider="{actions}">
+			<mx:columns>
+				<mx:DataGridColumn headerText="编号" dataField="actionnum" itemRenderer="minn.common.MinnLabel"/>
+				<mx:DataGridColumn headerText="权限名称" dataField="name" itemRenderer="minn.common.MinnLabel"/>
+				<mx:DataGridColumn headerText="操作" dataField="_creatorName" itemRenderer="minn.common.MinnLabel"/>
+			</mx:columns>
+		</mx:DataGrid>
+	
+</mx:Module>

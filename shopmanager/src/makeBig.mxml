@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" creationComplete="createEffect(event);">
+		<fx:Script>  
+			<![CDATA[   
+			import flash.events.Event;   
+			import mx.effects.Zoom;   
+			
+			private function createEffect(eventObj:Event):void {   
+			// 定义一个新的缩放效果的实体。   
+			var zEffect:Zoom = new Zoom();   
+			zEffect.duration = 2000;   
+			zEffect.zoomHeightTo = 1.50;   
+			zEffect.zoomWidthTo = 1.50;   
+			// 定义按钮的缩放效果。   
+			myB.setStyle("mouseDownEffect", zEffect);   
+			}   
+			]]>  
+		</fx:Script>  
+		<mx:Panel title="使用ActionScript实现行为控制示例" width="95%" height="95%"    
+				  horizontalAlign="center" verticalAlign="middle">  
+			
+			<mx:Button label="放大按钮" id="myB"/>  
+		</mx:Panel>  
+	
+</s:Application>

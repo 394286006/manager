@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" verticalGap="0" width="100%"  
+		   initialize="application_initializeHandler(event)" 
+		   creationComplete="application_creationCompleteHandler(event)"
+		   height="100%" xmlns:layout="layout.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script source="mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import minn.common.Entrypt;
+			
+			import mvc.model.operator.vo.Operator;
+			[Bindable] 
+			private var menubarXML:XMLList =
+				<>
+					<menuitem label="文件" data="1">
+						<menuitem label="MenuItem 1-A" data="1"/>
+						<menuitem label="MenuItem 1-B" data="1B"/>
+					</menuitem>
+					<menuitem label="Menu2" data="top">
+						<menuitem label="MenuItem 2-A" type="check" data="2A"/>
+						<menuitem type="separator"/>
+						<menuitem label="MenuItem 2-B" >
+							<menuitem label="SubMenuItem 3-A" type="radio"
+								groupName="one" data="3A"/>
+							<menuitem label="SubMenuItem 3-B" type="radio"
+								groupName="one" data="3B"/>
+						</menuitem>
+					</menuitem>
+				</>;
+			
+			[Bindable]
+			private var _operator:Operator=new Operator();
+			
+			[Bindable]
+			public function set operator(opr:Operator):void{
+				this._operator=opr;
+				this.parentApplication.operator=opr;
+				
+			}
+			[Bindable]
+			public function get operator():Operator{
+				return this._operator;
+			}
+			//			private var appFacade:ApplicationFacade= ApplicationFacade.getInstance();
+			private var mouseTarget:DisplayObject;
+			protected function application_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener("shopmanager"+MinnMessageEvent.MESSAGE,messageHandler);
+				MinnMessageEventManager.getInstance().addEventListener(OperatorEvent.OPERATOR_LOGIN2MAIN,mainVisible);
+				ExternalInterface.addCallback("openRightClick", openRightClick);
+				event.stopImmediatePropagation();
+				event.stopPropagation();
+				event.preventDefault();
+				
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				this.operator=e.data as Operator;
+//				Alert.show(operator.opr_name_ch);
+//				parentApplication.operator=operator;
+			}
+			private function mainVisible(e:OperatorEvent):void{
+				title_id.visible=true;
+				hDivBoxMenu.visible=true;
+			}
+			
+			protected function application_creationCompleteHandler(event:FlexEvent):void
+			{
+				
+//				WindowProxy.getInstance().getTitleWindow("mvc/view/manager/operator/component/LoginPanel.swf",null,this);
+				Entrypt.loadswfObject("mvc/view/manager/operator/component/LoginPanel"+Config.SUBFFIX,loadswfCompleteHandler);
+			}
+			private function loadswfCompleteHandler(evt:Event):void{
+				if(Config.SUBFFIX==Config.FLAG)
+					WindowProxy.getInstance().getLoginTitleWindow("LoginPanel.swf",evt.target.data as ByteArray,null,this);
+					else
+				WindowProxy.getInstance().getLoginTitleWindow("LoginPanel.swf",Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),null,this);
+//				WindowProxy.getInstance().getLoginTitleWindow("LoginPanel.swf",Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),null,this);
+			}
+			private function openRightClick():void
+			{
+				var e:MouseEvent = new MouseEvent(MouseEvent.MOUSE_DOWN, true, false, mouseTarget.mouseX, mouseTarget.mouseY);
+				mouseTarget.dispatchEvent(e);
+			}
+			protected function exit_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				ExternalInterface.call("window.close()");
+			}
+			protected function menubar_itemClickHandler(event:MenuEvent):void
+			{
+				//				var o:Object =new Object();
+				//				o.id="dd";
+				//				var win:MDIWindow=WindowProxy.getInstance().getMdiWindow("mvc/view/user/component/RegisterPanel.swf");
+				//				win.addEventListener(CloseEvent.CLOSE,function():void{
+				//					PopUpManager.removePopUp(win);
+				//					win=null;
+				//				});
+				//				hDivBoxMenu.mdiCanvas.windowManager.addCenter(win);
+				//				PopUpManager.addPopUp(win,this,true,null,this.moduleFactory);
+				//				PopUpManager.centerPopUp(win);
+				//			PopUpManager.addPopUp(win,mdiCanvas,true,null,this.moduleFactory);
+				//			PopUpManager.centerPopUp(win);
+				//				hDivBoxMenu.mdiCanvas.windowManager.showAllWindows();
+				//				hDivBoxMenu.mdiCanvas.windowManager.cascade();
+				//				hDivBoxMenu.mdiCanvas.windowManager.c
+				
+				//				MDIManager.global.cascade();
+				//				MDIManager.global.resize();
+			}
+			
+		]]>
+	</fx:Script>
+		<mx:HBox width="100%" height="51" id="title_id" visible="false">
+			<mx:MenuBar dataProvider="{menubarXML}" labelField="@label" itemClick="menubar_itemClickHandler(event)"></mx:MenuBar>
+			<mx:Spacer width="100%"/>
+			<s:Label text="欢迎登陆：{operator.opr_name_ch}"/>
+			<mx:Image source="assets/img/exit.gif" width="65" height="20"  useHandCursor="true" alpha="3" click="exit_clickHandler(event)"/>
+		</mx:HBox>
+		<layout:HDivBoxMenu id="hDivBoxMenu" visible="false">
+			
+		</layout:HDivBoxMenu>
+		
+</mx:Module>

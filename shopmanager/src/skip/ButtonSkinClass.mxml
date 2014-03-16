@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"  
+		
+		xmlns:s="library://ns.adobe.com/flex/spark"  
+		
+		xmlns:mx="library://ns.adobe.com/flex/mx" 
+		
+		alpha.disabled="0.7"> 
+	
+	<s:states> 
+		
+		<s:State name="up"/> 
+		
+		<s:State name="over"/> 
+		
+		<s:State name="down"/> 
+		
+		<s:State name="disabled"/> 
+		
+	</s:states> 
+	
+	<s:filters> 
+		
+		<s:DropShadowFilter alpha="0.5" distance="1.2" quality="2" excludeFrom="down"/> 
+		
+	</s:filters> 
+	
+	<s:Rect id="myMain" radiusX="4" radiusY="4" top="0" right="0" bottom="0" left="0"> 
+		
+		<s:fill> 
+			
+			<s:SolidColor color="0x5bc1e9" color.over="0xcfc851" color.down="0xb19600"/> 
+			
+		</s:fill> 
+		
+		<s:stroke> 
+			
+			<s:SolidColorStroke color="0x001fa4" weight="1"/> 
+			
+		</s:stroke> 
+		
+	</s:Rect> 
+	
+	<s:Rect id="myTop" radiusX="4" radiusY="4" top="1" right="1" left="1" height="50%"> 
+		
+		<s:fill> 
+			
+			<s:LinearGradient rotation="90"> 
+				
+				<s:GradientEntry color="0xFFFFFF" alpha="0.7"/> 
+				
+				<s:GradientEntry color="0xFFFFFF" alpha="0.2"/> 
+				
+			</s:LinearGradient> 
+			
+		</s:fill> 
+		
+	</s:Rect> 
+	
+	<s:Label text="确定" verticalCenter="2" horizontalCenter="0"  textAlign="center" fontWeight="bold" color="0x131313" color.over="0x0150ad" color.down="0x0150ad"/> 
+	
+</s:Skin> 
+

@@ -1,0 +1,122 @@
+<?xml version=”1.0″ encoding=”utf-8″ ?>
+ 
+<project name=shopmanager default=”CompileAndTestApp” basedir=”.”>
+ 
+
+<description>Build MyProject</description>
+ 
+<property name=”fdbuild” location=”C:\Program Files\FlashDevelop\Tools\fdbuild\fdbuild.exe”/>
+ 
+<property name=”compiler” location=”D:\Programs\flex”/>
+ 
+<property name=”library” location=”C:\Program Files\FlashDevelop\Library”/>
+ 
+<property name=”flashviewer” location=”C:\Program Files\FlashDevelop\Tools\flexsdk\runtimes\player\10.1\win\FlashPlayerDebugger.exe”/>
+ 
+<property name=”appswf” location=”${basedir}\bin\shopmanager.swf”/>
+  <!--
+<property name=”mylittleproject1″ location=”${basedir}\external_content\MyLittleProject1\MyLittleProject1.as3proj”/>
+
+<property name=”mylittleproject2″ location=”${basedir}\external_content\MyLittleProject2\MyLittleProject2.as3proj”/>
+  -->
+<property name=”myproject” location=”${basedir}\MyProject.as3proj”/>
+ 
+<target name=”myproject”>
+ 
+<echo message=”Compiling ${mylittleproject1}.”/>
+ 
+<exec executable=”${fdbuild}” failonerror=”true”>
+ 
+<arg value=”${mylittleproject1}”/>
+ 
+<arg value=”-compiler”/>
+ 
+<arg value=”${compiler}”/>
+ 
+<arg value=”-library”/>
+ 
+<arg value=”${library}”/>
+ 
+</exec>
+ 
+</target>
+ 
+<target name=”MyLittleProject2″>
+ 
+<echo message=”Compiling ${mylittleproject2}.”/>
+ 
+<exec executable=”${fdbuild}” failonerror=”true”>
+ 
+<arg value=”${mylittleproject2}”/>
+ 
+<arg value=”-compiler”/>
+ 
+<arg value=”${compiler}”/>
+ 
+<arg value=”-library”/>
+ 
+<arg value=”${library}”/>
+ 
+</exec>
+ 
+</target>
+ 
+<target name=”MyProject”>
+ 
+<echo message=”Compiling ${myproject}.”/>
+ 
+<exec executable=”${fdbuild}” failonerror=”true”>
+ 
+<arg value=”${myproject}”/>
+ 
+<arg value=”-compiler”/>
+ 
+<arg value=”${compiler}”/>
+ 
+<arg value=”-library”/>
+ 
+<arg value=”${library}”/>
+ 
+</exec>
+ 
+</target>
+ 
+<target name=”compile” depends=”MyLittleProject1, MyLittleProject2, MyProject”>
+ 
+<echo message=”Compiling ${myproject}.”/>
+ 
+<exec executable=”${fdbuild}” failonerror=”true”>
+ 
+<arg value=”${myproject}”/>
+ 
+<arg value=”-compiler”/>
+ 
+<arg value=”${compiler}”/>
+ 
+<arg value=”-library”/>
+ 
+<arg value=”${library}”/>
+ 
+</exec>
+ 
+</target>
+ 
+<target name=”CompileAndTestApp”>
+ 
+<antcall target=”compile” />
+ 
+<antcall target=”TestApp” />
+ 
+</target>
+ 
+<target name=”TestApp”>
+ 
+<exec executable=”${flashviewer}” failonerror=”true”>
+ 
+<arg value=”${appswf}”/>
+ 
+</exec>
+ 
+</target>
+ 
+</project>

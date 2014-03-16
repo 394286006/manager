@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark"
+		   xmlns:mx="library://ns.adobe.com/flex/mx" width="520" height="360" 
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off" 
+		   verticalGap="0" 
+		    mouseOver="hbox1_mouseOverHandler(event)" creationComplete="vbox1_creationCompleteHandler(event)">
+	<fx:Declarations>
+		<s:RadioButtonGroup  id="level_flag_id" selectedValue="0" change="level_flag_id_changeHandler(event)"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script source="../../../../../mvc/base/FrontBaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import com.adobe.serialization.json.JSON;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.ProgressBar;
+			import mx.effects.Blur;
+			import mx.effects.Move;
+			import mx.effects.Zoom;
+			import mx.events.EffectEvent;
+			import mx.events.FlexEvent;
+			import mx.events.FlexMouseEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			import mx.modules.ModuleLoader;
+			
+			import minn.message.Message;
+			
+			import mvc.model.merchandise.vo.Photo;
+			import mvc.view.front.commont.Circle;
+			import mvc.view.front.product.vo.Product;
+
+			private var imgarr:Array=["productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG",
+				"productdata/pic/Nokia_3595.gif","productdata/pic/Nokia_3120.gif","productdata/pic/Nokia_3220.gif"
+			,"productdata/pic/Nokia_3650.gif","productdata/pic/Nokia_3595.gif","productdata/pic/Nokia_6010.gif",
+			"productdata/pic/100_1763.JPG","productdata/pic/100_1764.JPG","productdata/pic/Nokia_3595.gif",
+			"productdata/pic/Nokia_3120.gif","productdata/pic/Nokia_3220.gif","productdata/pic/Nokia_3650.gif"
+			,"productdata/pic/Nokia_3595.gif","productdata/pic/Nokia_6010.gif","productdata/pic/Nokia_6010.gif",
+			"productdata/pic/Nokia_6010.gif","productdata/pic/Nokia_6010.gif","productdata/pic/Nokia_6010.gif",
+			"productdata/pic/Nokia_6010.gif"];
+			
+			[Bindable]
+			private var filearr:ArrayCollection=new ArrayCollection();
+			
+			private var zoom:Zoom=null;
+			private var mv:Move=null;
+			private var _product:Product;
+			private var curindex:String=null;
+
+//			private var upurl:String="http://127.0.0.1:8009/minn/services/upload/upLoad.php";//指明后台处理的文件 
+			private var upfile:FileReference;
+			private var imageTypes:FileFilter;
+			private var pbrUploadProgress:ProgressBar;
+			private var _title:String="";
+			private var _upfilename:String;
+			private var _photo:Photo;
+			private var method:String="add";
+//			private var _imgbaseurl:String="http://127.0.0.1:8009/minn/services/uploadfile/";
+
+			[Bindable]
+			public function get product():Product{
+				return _product;
+			}
+			
+			public function get imgarray():Array{
+				return filearr.toArray();
+			}
+			public function get imgcount():String{
+				return filearr.length.toString();
+			}
+			public function set imgarray(arr:Array):void{
+				filearr.addAll(new ArrayCollection(arr));
+				
+				
+			}
+			public function set product(p:Product):void{
+				this._product=p;
+				imgarr=p.imglevel1 as Array;
+				hbox1_creationCompleteHandler();
+			}
+			
+			protected function hbox1_creationCompleteHandler(event:FlexEvent=null):void
+			{
+				// TODO Auto-generated method stub
+				
+			
+			}
+
+
+			protected function hbox1_mouseOverHandler(event:MouseEvent):void
+			{
+				
+			}
+
+			public function set title(t:String):void{
+				_title=t;
+			}
+
+			var count:int=1;
+			var total:int=16;
+			
+			protected function forword_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			
+		
+			}
+
+
+			protected function back_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			
+				
+			}
+
+
+			protected function bigimg_clickHandler(event:MouseEvent):void
+			{
+				var imglevel2:Object='';
+				if(product==null)
+					imglevel2=[bigimg.source];
+				else 
+				imglevel2=product.imglevel2;
+				WindowProxy.getInstance().getModuleWindow("mvc/view/front/commont/ImageShow.swf",{imglevel2:imglevel2,curindex:curindex},null,false);
+			}
+			
+			
+            private var blr:Blur=null;
+
+			protected function vbox1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				title_id.text=_title;
+				upfile=new FileReference();
+				upfile.addEventListener(Event.SELECT, selectHandler);
+				upfile.addEventListener(Event.OPEN, openHandler);
+				upfile.addEventListener(ProgressEvent.PROGRESS, progressHandler);
+				upfile.addEventListener(IOErrorEvent.IO_ERROR, uploadIoErrorHandler);
+				upfile.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, uploadCompleteHandler);
+				upfile.addEventListener(Event.CANCEL,cancelHandler);
+				
+				pbrUploadProgress=new ProgressBar();
+				pbrUploadProgress.indeterminate=false;
+				pbrUploadProgress.mode="manual";
+				pbrUploadProgress.labelPlacement="bottom";
+				pbrUploadProgress.setStyle("trackHeight",9);
+				pbrUploadProgress.setStyle("fontWeight","bold");
+				pbrUploadProgress.setStyle("color","red");
+				// Instantiate a new FileFilter.
+				imageTypes = new FileFilter("图片(png.jpeg.jpg.gif)", "*.jpg");
+//				for(var i:int=0;i<imgarr.length-1;i++){
+//					filearr.addItem({level1type:"gif",level2type:"gif",imgname:imgarr[i],imgpath:imgarr[i]});
+//				}
+//				files_id.selectedIndex=0;
+//				level_flag_id_changeHandler();
+				if(filearr.length>0){
+					files_id.selectedIndex=0;
+					level_flag_id_changeHandler();
+				}
+			}
+			
+			/**
+			 * 删除物理文件图片
+			 **/
+			public function del_clickHandler(event:MouseEvent,level:int,obj:Object):void
+			{
+				// TODO Auto-generated method stub
+				var variables:URLVariables = new URLVariables();
+				variables.method ="delfile";
+				if(level==1){
+					variables.level="level1";
+				}else{
+					variables.level="level2";
+				}
+//				var delobj:Object=files_id.selectedItem;
+//				var p:Photo=new Photo();
+//				MinnUtil.propertyMap(obj ,p);
+//				Alert.show(obj.imgpath);
+				delFileRecord([obj],variables,obj,level);
+//				Alert.show(p.id);
+			}
+			
+			public function delFileRecord(arr:Array,variables:URLVariables,obj:Object=null,level:int=3):void{
+				MinnUtil.deleteFile(Config.UPLOAD_URL,variables,arr,function(evt:Event):void{
+					deleteFileResult(evt,level,obj);
+				});
+			}
+			
+			/**
+			 * 删除文件成功处理函数
+			 **/ 
+			private function deleteFileResult(evt:Event,level:int,obj:Object=null):void{
+//				if(evt.target.data){
+				var loader:URLLoader=URLLoader(evt.target);
+//				Alert.show(loader.data);
+				var message:Message=MinnUtil.getMessage(JSON.decode(decodeURIComponent(loader.data)));
+                if(message.messageSucess==1){
+					if(obj!=null){
+						if(level==1){
+							obj.level1type='';
+							filearr.setItemAt(obj,filearr.getItemIndex(obj));
+							level_flag_id.selectedValue=1;
+						}else{
+							obj.level2type='';
+							filearr.setItemAt(obj,filearr.getItemIndex(obj));
+							level_flag_id.selectedValue=0;
+						}
+						if((obj.level1type==''||obj.level1type==null)&&(obj.level2type==''||obj.level2type==null)){
+							if(filearr.getItemIndex(obj)>-1)
+							    filearr.removeItemAt(filearr.getItemIndex(obj));
+	//						files_id.selectedItem=null;
+						}
+					}else{
+						filearr.removeAll();
+					}
+					
+						level_flag_id_changeHandler();
+				 if(obj!=null)
+				  Alert.show(message.messageBody,"提示");
+				}else{
+				  Alert.show(message.messageBody,"提示");
+				}
+			}
+			
+			//显示图片
+			public function imglevel_itemClickHandler(event:ListEvent=null):void
+			{
+				// TODO Auto-generated method stub
+				img_add_id.selected=false;
+				if(files_id.selectedItem){
+//					if(level==1){
+						txtFilename.text=files_id.selectedItem.imgname;
+//					}else{
+//						txtFilename.text="大图名称:"+name;
+//					}
+						level_flag_id.selectedValue=0;	
+						desc_id.text=files_id.selectedItem.descript;
+//					bigimg.source=""+files_id.selectedItem.imgpath;
+				}else{
+					txtFilename.text="";
+					bigimg.source="";
+					desc_id.text='';
+				}
+				level_flag_id_changeHandler();
+			}
+			/**
+			 * 显示大图还是小图
+			 **/ 
+			protected function level_flag_id_changeHandler(event:Event=null):void
+			{
+				// TODO Auto-generated method stub
+				if(files_id.selectedItem){
+                    _photo=files_id.selectedItem as Photo;
+					txtFilename.text=_photo.imgname;
+					if(level_flag_id.selectedValue==0){
+						
+						if((files_id.selectedItem.level1type!='')&&(files_id.selectedItem.level1type!=null))
+						    bigimg.source=Config.UPLOAD_DIR+"imglevel1/"+_photo.imgpath;
+						else
+							bigimg.source="";
+					}else{
+						if((files_id.selectedItem.level2type!='')&&(_photo.level2type!=null))
+						    bigimg.source=Config.UPLOAD_DIR+"imglevel2/"+_photo.imgpath;
+						else{
+							bigimg.source="";
+						}
+					}
+//					_upfilename=files_id.selectedItem.imgpath;
+				}else{
+					bigimg.source="";
+					txtFilename.text="";
+					desc_id.text='';
+				}
+			
+			}
+			
+			/**
+			 * Event handler for the "Browse" button's click.
+			 * 
+			 * @param event Event object contains details of the event triggering this handler.
+			 */          
+			private function browseHandler(event:Event):void {
+//				pbrUploadProgress.visible = false;
+				btnUpload.enabled = false;
+				img_add_id.enabled=false;
+				upfile.browse([imageTypes]);
+			}
+			private function cancelHandler(e:Event):void
+			{
+				//				pbrUploadProgress.label="鍙栨秷涓婁紶";
+//				txtFilename.text="";
+			}
+			/**
+			 * 显示需要上传的文件名称
+			 * 
+			 * @param event Event object contains details of the event triggering this handler.
+			 */ 
+			private function selectHandler(event:Event):void {
+				txtFilename.text =upfile.name;
+				txtFilename_cn_id.text=upfile.name.split(".")[0];
+				txtFilename_cn_id.setFocus();
+				btnUpload.enabled = true;
+				img_add_id.enabled=true;
+				cn_filename_id.visible=true;
+			}
+			
+			/**
+			 * 显示上传进度
+			 * 
+			 * @param event Event object contains details of the event triggering this handler.
+			 */ 
+			private function openHandler(event:Event):void {
+//				pbrUploadProgress.visible = true;
+			
+				pbrUploadProgress.label = "已上传 %3%% .";
+			}
+		
+			private function progressHandler(event:ProgressEvent):void {
+				
+				pbrUploadProgress.setProgress(event.bytesLoaded, event.bytesTotal);    
+				
+			}
+			
+		   /**
+		   *  上传完毕处理函数
+		   **/ 
+			private function uploadCompleteHandler(event:DataEvent):void {
+				try {
+//					var xmlResponse:XML = XML(event.data);
+//					pbrUploadProgress.label = "涓婁紶瀹屾垚.";
+//					Alert.show(event.data.toString());
+					var mes:Message=MinnUtil.getMessage(JSON.decode(decodeURIComponent(event.data)));
+					if(mes.messageSucess==1){
+						_photo.id=mes.otherInfo.id;
+						if(img_add_id.selected){
+							filearr.addItem(_photo);
+						}else{
+							filearr.setItemAt(_photo,filearr.getItemIndex(files_id.selectedItem));
+						}
+						
+						if(level_flag_id.selectedValue==0){
+							bigimg.source=Config.UPLOAD_DIR+"imglevel1/"+_photo.imgpath;
+							
+						}else{
+							bigimg.source=Config.UPLOAD_DIR+"imglevel2/"+_photo.imgpath;
+						}
+						PopUpManager.removePopUp(pbrUploadProgress);
+						
+						btnUpload.enabled=false;
+						img_add_id.enabled=false;
+						cn_filename_id.visible=false;
+						//					btnCancel.visible=false;
+						txtFilename.text="";
+						
+					}else{
+						Alert.show(mes.messageBody,"提示")
+					}
+				}
+				catch (error:Error) {
+//					pbrUploadProgress.label = "寮傚父涓柇.";
+					Alert.show("返回元素处理失败: " + error.message,"提示");
+				}
+			}
+			
+			
+			private function uploadIoErrorHandler(event:IOErrorEvent):void {
+//				pbrUploadProgress.label = "涓婁紶琚腑鏂紝璇烽噸鏂颁笂浼?";
+				Alert.show("IO Error: " + event.toString());
+			}
+
+			protected function up_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var imgnamelevelarr:Array=upfile.name.split(".");
+				if(img_add_id.selected){
+					_photo=new Photo();
+					_upfilename=this.parentApplication.operator.opr_name_en+"_"+MinnUtil.getCurentDateAndTime("YYYYMMDDHHNNSS")+"."+imgnamelevelarr[imgnamelevelarr.length-1];
+					_photo.imgpath=_upfilename;
+					
+				}else if(files_id.selectedItem){
+					
+//					_photo=files_id.selectedItem as Photo;
+//				    MinnUtil.propertyMap(files_id.selectedItem ,_photo);
+//					_upfilename=_photo.imgpath;
+				}else{
+					Alert.show("你好,请勾选新增或选择列表中的其中一条数据!","提示");
+					return;
+				}
+				_photo.imgname=txtFilename_cn_id.text;
+//				_photo.sourcename=txtFilename.text;
+//				var leveltype:Array=txtFilename.text.split(".");
+				//					Alert.show(txtFilename.text+":"+leveltype[1]);
+				if(level_flag_id.selectedValue==0){
+					_photo.level1type=imgnamelevelarr[imgnamelevelarr.length-1];
+				}else{
+					_photo.level2type=imgnamelevelarr[imgnamelevelarr.length-1];
+				}
+				_photo.creator=this.parentApplication.operator.id;
+				_photo.mcd_id=this.parentDocument.merchandise.id;
+				_photo.descript=desc_id.text;
+				var request:URLRequest = new URLRequest(Config.UPLOAD_URL);
+				request.method = "post";
+//				var d:Date=new Date();
+				
+				//				AlertExt.show(arr.toString());
+//				othername=Operator.operId+d.getTime()+"."+arr[arr.length-1];
+//				Alert.show(this.parentApplication.operator.opr_name_en);
+				
+				
+			   if(level_flag_id.selectedValue==0){
+				   if(files_id.selectedItem&&files_id.selectedItem.level1type!="")
+					   Alert.show("小图片已经存在!");
+			   }else{
+				   if(files_id.selectedItem&&files_id.selectedItem.level2type!="")
+					   Alert.show("大图片已经存在!");
+			   }
+				
+				var variables:URLVariables = new URLVariables();
+				variables.method ="upload";
+				variables.upfilename=_photo.imgpath; 
+				variables.photo=encodeURIComponent(JSON.encode(_photo));
+				if(level_flag_id.selectedValue==0){
+					variables.level="level1";
+				}else{
+					variables.level="level2";
+				}
+			
+				
+				request.data =variables;
+				
+				upfile.upload(request);
+
+			}
+
+
+
+		
+			protected function desc_id_changeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				if(files_id.selectedItem){
+					files_id.selectedItem.descript=desc_id.text;
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<mx:Label text="" id="title_id"/>
+	<mx:HBox horizontalGap="1" width="100%">
+		<mx:Canvas width="180" height="250" borderColor="#CEBBBB" borderAlpha="1" horizontalScrollPolicy="off" verticalScrollPolicy="off"  borderVisible="true" borderStyle="outset" >
+			<mx:Image  id="bigimg" width="100%" height="250" click="bigimg_clickHandler(event)" source="{product.imglevel1[0]}"/>
+		</mx:Canvas>
+		<mx:DataGrid dataProvider="{filearr}" width="100%" height="100%" id="files_id" itemClick="imglevel_itemClickHandler(event)">
+			<mx:columns>
+				<mx:DataGridColumn dataField="imgname" headerText="图片名称">
+					
+				</mx:DataGridColumn>
+				<mx:DataGridColumn  width="20" headerText="小">
+					<mx:itemRenderer>
+						<fx:Component>
+							<mx:Button  updateComplete="updateCompleteHandler(data)" click="outerDocument.del_clickHandler(event,1,data)"  width="14" height="14"  icon="@Embed('/assets/trashcan.png')">
+								<fx:Script>
+									<![CDATA[
+										import mx.events.FlexEvent;
+										protected function updateCompleteHandler(d:Object):void
+										{
+											if(d.level1type==''||d.level1type==null)
+											    this.visible=false;
+										}
+									]]>
+								</fx:Script>
+							</mx:Button>
+							
+						</fx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+				<mx:DataGridColumn  width="20" headerText="大">
+					<mx:itemRenderer>
+						<fx:Component>
+							<mx:Button updateComplete="updateCompleteHandler(data)" click="outerDocument.del_clickHandler(event,2,data)"  width="14" height="14"  icon="@Embed('/assets/trashcan.png')">
+							<fx:Script>
+								<![CDATA[
+									import mx.events.FlexEvent;
+									protected function updateCompleteHandler(d:Object):void
+									{
+										if(d.level2type==''||d.level2type==null)
+											this.visible=false;
+									}
+								]]>
+							</fx:Script>
+								</mx:Button>
+						</fx:Component>
+					</mx:itemRenderer>
+				</mx:DataGridColumn>
+			</mx:columns>
+		</mx:DataGrid>
+		<mx:VBox width="150" height="300">
+			<s:Label text="图片描述"/>
+			<mx:TextArea height="100%" width="100%" id="desc_id" change="desc_id_changeHandler(event)"/>
+		</mx:VBox>
+	</mx:HBox>
+	<mx:HBox horizontalGap="10">
+		<mx:Button label="浏览.."  click="browseHandler(event)"/>
+		<mx:Button label="上传文件" id="btnUpload" enabled="false" click="up_clickHandler(event)"/>
+		<mx:CheckBox label="新增" id="img_add_id" enabled="false" selected="true"/>
+		<s:RadioButton label="小图片" groupName="level_flag_id" value="0"/>
+		<s:RadioButton label="大图片" groupName="level_flag_id" value="1"/>
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="图片名称:"/><mx:Label id="txtFilename"/>
+	</mx:HBox>
+	
+	<mx:HBox id="cn_filename_id" visible="false" horizontalGap="0">
+		<mx:Label text="保存的中文名称:" />	<mx:TextInput id="txtFilename_cn_id" height="20"/>
+	</mx:HBox>
+</mx:VBox>

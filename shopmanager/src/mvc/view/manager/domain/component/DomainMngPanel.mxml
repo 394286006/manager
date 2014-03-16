@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   name="域名管理"
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="horizontal" width="100%" height="100%" xmlns:common="minn.common.*" 
+		   initialize="module1_initializeHandler(event)" creationComplete="creationCompleteHandler(event)" removed="module1_removeHandler(event)" xmlns:base="com.base.*">
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mvc.model.domain.vo.Domain;
+			[Bindable]
+			private var domains:ArrayCollection=new ArrayCollection();
+			
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				//				var customMenuItem1:ContextMenuItem = new ContextMenuItem("Flex SDK " + mx_internal::VERSION, false, false);
+				//				var customMenuItem2:ContextMenuItem = new ContextMenuItem("Player " + Capabilities.version, false, false);
+				//				var contextMenuCustomItems:Array = new Array();
+				//				FlexGlobals.topLevelApplication.contextMenu.customItems=contextMenuCustomItems;
+				//				contextMenuCustomItems.push(customMenuItem1);
+				//				contextMenuCustomItems.push(customMenuItem2);
+				MinnMessageEventManager.getInstance().addEventListener(this.parent.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+				MinnMessageEventManager.getInstance().addEventListener(MinnMessageEvent.MESSAGE+"DomainPanel",domainMessageHandler);
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				
+			}
+			private function domainMessageHandler(e:MinnMessageEvent):void{
+				//				var _ctype:Object=e.data.item;
+				//				var op:Operator=e.data.item as Operator;
+				//				Alert.show(_ctype.color);
+				var mp:Domain=e.data.item as Domain;
+				if(e.data.method=="add"){
+					MinnUtil.reverse(domains);
+					domains.addItem(mp);
+					MinnUtil.reverse(domains);
+				}else{
+					domains.setItemAt(mp,e.data.index);
+				}
+				
+				//				else if(_ctype.color==2)
+				//					ee=new MerchandiseEvent(MerchandiseEvent.CTYPE_MERCHANDISE_MODIFY,e.data,true);
+				//				this.dispatchEvent(ee);
+			}
+			
+			protected function creationCompleteHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				pageBar.recordCount=30;
+				this.appFacade.startup(AppCommand.DOMAIN_MNG_PANEL_STARTUP,this);
+				//				removeDefaultItems();
+				//				addChildren();
+				//				addCustomMenuItems();
+				
+				
+				
+				//				trace(JSON.encode(_treeMenuData));
+			}
+			
+			
+			private function loadSpTitleswfCompleteHandler(evt:Event,url:String,d:Object):void{
+				//				mm.loadModule("2011010812342.swf",Entrypt.uncompress(evt.target.data as ByteArray,KEY));
+				if(Config.SUBFFIX==Config.FLAG)
+					WindowProxy.getInstance().getSpTitleWindow(url,evt.target.data as ByteArray,d,this);
+				else
+					WindowProxy.getInstance().getSpTitleWindow(url,Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),d,this);
+			}
+			
+			protected function module1_removeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				if(event.target==this){
+					this.removeEventListener(FlexEvent.CREATION_COMPLETE,creationCompleteHandler);
+					MinnMessageEventManager.getInstance().removeEventListener(this.parent.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+					//					MinnMessageEventManager.getInstance().removeEventListener(MinnMessageEvent.MESSAGE+"MerchandisePanel",merchandiseMessageHandler);
+					//					category_id.dataProvider=null;
+					
+					domain_id.dataProvider=null;
+					domain_id.itemRenderer=null;
+				}
+			}
+			
+			
+			protected function add_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var url:String="mvc/view/manager/domain/component/DomainPanel"+Config.SUBFFIX;
+				var _mp:Domain=new Domain();
+				_mp._color='1';
+				_mp._sid=this.parentApplication.PRIVATEKEY;
+				Entrypt.loadswfObject("mvc/view/manager/domain/component/DomainPanel"+Config.SUBFFIX,function(evt:Event):void{
+					loadTitleswfCompleteHandler(evt,"mvc/view/manager/domain/component/DomainPanel.swf",{method:"add",index:-1,item:_mp});
+				});
+			}
+			protected function modify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(domain_id.selectedItem){
+					var url:String="mvc/view/manager/domain/component/DomainPanel"+Config.SUBFFIX;
+					var _mp:Domain=domain_id.selectedItem as Domain;
+					_mp._color="2";
+					Entrypt.loadswfObject(url,function(evt:Event):void{
+						loadTitleswfCompleteHandler(evt,"mvc/view/manager/domain/component/DomainPanel.swf",{method:"modify",index:domain_id.selectedIndex,item:_mp});
+					});
+				}else{
+					Alert.show("请先选择数据!","提示");
+				}
+			}
+			private function loadTitleswfCompleteHandler(evt:Event,url:String,d:Object):void{
+				if(Config.SUBFFIX==Config.FLAG)
+					WindowProxy.getInstance().getTitleWindow(url,evt.target.data as ByteArray,d,this);
+				else
+					WindowProxy.getInstance().getTitleWindow(url,Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),d,this);
+			}
+			
+			protected function del_clickHandler(event:MouseEvent):void
+			{
+				if(domain_id.selectedItem){
+					var dm:Domain=domain_id.selectedItem as Domain;
+				    dm._sid=this.parentApplication.PRIVATEKEY;
+					this.dispatchEvent(new DomainEvent(DomainEvent.DOMAIN_DEL,{index:domain_id.selectedIndex,item:dm},true));
+				}else
+					Alert.show("请先选择一条数据!","提示");
+			}
+			public function invokeDel():void
+			{
+				domains.removeItemAt(domains.getItemIndex(domain_id.selectedItem));
+			}
+			/**
+			 * 更新列表中的商品 已过时
+			 **/ 
+			public function invokeMerchandiseUpdate(info:Object):void{
+				domains.setItemAt(info.item,info.index);
+			}
+			
+			private function query_clickHandler(e:Event=null):void{
+				var condition:Object=new Object();
+				condition._sid=this.parentApplication.PRIVATEKEY;
+				if(e is PageEvent){
+					condition.pageIndex=(e as PageEvent).pageIndex;
+					condition.pageSize=(e as PageEvent).pageSize;
+					condition.recordCount=(e as PageEvent).recordCount;
+				}else{
+					pageBar.recordCount = -1;
+					pageBar.pageIndex = 0;
+					condition.pageIndex=pageBar.pageIndex;
+					condition.pageSize=pageBar.pageSize;
+					condition.recordCount=pageBar.recordCount;
+				}
+				//								Alert.show(startdate_id.text);
+				this.dispatchEvent(new DomainEvent(DomainEvent.DOMAIN_QUERY,{item:condition},true));
+			}
+			
+			/**
+			 * 查询结果回调函数
+			 **/ 
+			public function invokeQuery(arr:ArrayCollection,recordCount:int):void{
+				pageBar.recordCount=recordCount;
+				domains.removeAll();
+				domain_id.itemRenderer=null;
+				domains.addAll(arr);
+				//				Alert.show(ctypes.length+'');
+			}
+			
+			private function pm_clickHandler(evt:MouseEvent):void{
+				this.dispatchEvent(new DomainEvent(DomainEvent.GENERATOR_DOMAIN_MENU,{item:{_sid:this.parentApplication.PRIVATEKEY}},true));
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	
+	<mx:states>
+		<s:State name="default"/>    
+		<s:State name="qry"/>
+	</mx:states>
+	
+	<mx:VBox width="100%" height="100%">
+		<mx:HBox width="100%">
+			<common:PageToolBar id="pageBar">
+			</common:PageToolBar>
+			<mx:Spacer width="100%"/>
+			<s:ToggleButton label="显示条件查询" click="currentState='qry'" click.qry="currentState=''" label.qry="隐藏条件查询" />
+			<s:ToggleButton label="添加" click="add_clickHandler(event)"/>
+			<s:ToggleButton label="修改" click="modify_clickHandler(event)"/>
+			<s:ToggleButton label="删除" click="del_clickHandler(event)"/>
+			<s:ToggleButton label="生成域名菜单" click="pm_clickHandler(event)"/>
+		</mx:HBox>
+		<mx:HBox width="100%" includeIn="qry">
+		
+			<s:Button label="查找" click="query_clickHandler(event)"/>
+		</mx:HBox>
+		<mx:DataGrid width="100%" height="100%" dataProvider="{domains}" id="domain_id">
+			<mx:columns>
+				<mx:DataGridColumn headerText="url地址" dataField="name" itemRenderer="minn.common.MinnLabel"/>
+				<mx:DataGridColumn headerText="描述" dataField="descript" itemRenderer="minn.common.MinnLabel"/>
+				<mx:DataGridColumn headerText="创建人" dataField="_creatorName" itemRenderer="minn.common.MinnLabel"/>
+				<mx:DataGridColumn headerText="创建时间" dataField="createDate" itemRenderer="minn.common.MinnLabel"/>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:VBox>
+</mx:Module>

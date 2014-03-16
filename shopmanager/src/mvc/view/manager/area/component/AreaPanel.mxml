@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" name="地区" layout="vertical" width="260" verticalGap="0" height="200"
+		   initialize="module1_initializeHandler(event)" creationComplete="module1_creationCompleteHandler(event)">
+	
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mvc.model.area.vo.City;
+			import mvc.model.area.vo.Province;
+			import mvc.model.area.vo.Town;
+			import mvc.view.manager.area.event.AreaEvent;
+			
+			import mx.events.ValidationResultEvent;
+			import mx.validators.Validator;
+			
+			//0=省，1=市 ；2=镇区
+			private var _type:int=0;
+			
+			private var _province:Province=null;
+			private var _city:City=null;
+			private var _town:Town=null;
+			private var method:String="add";
+			private var index:int=0;
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(this.parentDocument.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+				//				MinnMessageEventManager.getDisp().addEventListener(this.parentDocument.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+//				appFacade.startup(AppCommand.CTYPE_PANEL_STARTUP,this);
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				method=e.data.method;
+				type_id.text=e.data.name;
+				_type=e.data.type;
+				
+				if(_type==0){
+					_province=e.data.item as Province;
+					name_id.text=_province.name;
+					creator_id.text=_province._creatorName;
+					creatorDate_id.text=_province.createDate;
+					spece_id.includeInLayout=false;
+					spece_id.visible=false;
+				}
+				if(_type==1){
+					_city=e.data.item as City;
+					name_id.text=_city.name;
+					creator_id.text=_city._creatorName;
+					creatorDate_id.text=_city.createDate;
+					spece_id.includeInLayout=false;
+					spece_id.visible=false;
+					_province=e.data.pobj as Province;
+				}
+				if(_type==2){
+					_town=e.data.item as Town;
+					name_id.text=_town.name;
+					creator_id.text=_town._creatorName;
+					creatorDate_id.text=_town.createDate;
+//					flag_id.selected=_town.flag
+					spece_id.includeInLayout=false;
+					spece_id.visible=false;
+					_city=e.data.pobj as City;
+				}
+				
+			}
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				appFacade.startup(AppCommand.AREA_PANEL_STARTUP,this);
+			}
+			public function cancel_clickHandler(event:MouseEvent=null):void
+			{
+				
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+			
+			
+			protected function saveOrModify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var validatorErrorArray:Array = Validator.validateAll(validatorArray); 
+				var err:ValidationResultEvent; 
+				var errorMessageArray:Array = []; 
+				if(validatorErrorArray.length>0){
+					for each (err in validatorErrorArray) { 
+						errorMessageArray.push(err.message); 
+					} 
+					
+					if(errorMessageArray.length >0){
+						Alert.show(errorMessageArray.join("\n\n"), "请按照以下错误提示信息重新填写", Alert.OK);
+						
+						return;
+					}
+				}
+				
+				var ee:AreaEvent=null;
+			   if(_type==0) {
+				   _province._sid=this.parentApplication.PRIVATEKEY;
+				   _province.creator=this.parentApplication.operator.id;
+				   _province._creatorName=this.parentApplication.operator.opr_name_ch;
+					_province.name=name_id.text;
+					if(_province.id==''){
+						ee=new AreaEvent(AreaEvent.AREA_PROVINCE_ADD,{index:index,item:_province},true);
+					}else{ 
+						ee=new AreaEvent(AreaEvent.AREA_PROVINCE_MODIFY,{index:index,item:_province},true);
+					}
+			   }
+			   if(_type==1) {
+				   _city.p_id=_province.id;
+				   _city._sid=this.parentApplication.PRIVATEKEY;
+				   _city.creator=this.parentApplication.operator.id;
+				   _city._creatorName=this.parentApplication.operator.opr_name_ch;
+				   _city.name=name_id.text;
+				   if(_city.id==''){
+					   ee=new AreaEvent(AreaEvent.AREA_CITY_ADD,{index:index,item:_city},true);
+				   }else{ 
+					   ee=new AreaEvent(AreaEvent.AREA_CITY_MODIFY,{index:index,item:_city},true);
+				   }
+			   }
+			   if(_type==2) {
+				   _town.c_id=_city.id;
+				   _town._sid=this.parentApplication.PRIVATEKEY;
+				   _town.name=name_id.text;
+				   _town.creator=this.parentApplication.operator.id;
+				   _town._creatorName=this.parentApplication.operator.opr_name_ch;
+				   if(_town.id==''){
+					   ee=new AreaEvent(AreaEvent.AREA_TOWN_ADD,{index:index,item:_town},true);
+				   }else{ 
+					   ee=new AreaEvent(AreaEvent.AREA_TOWN_MODIFY,{index:index,item:_town},true);
+				   }
+			   }
+			 
+			   this.dispatchEvent(ee);
+			}
+			
+			/**
+			 *  添加数据成功回调函数 
+			 **/
+			public function invokeAdd(o:Object):void{
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"AreaPanel",{method:"add",index:index,item:o,type:_type},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				cancel_clickHandler();
+			}
+			public function invokeUpdate():void{
+				var _item:*=null;
+				if(_type==0){
+					_item=_province;
+				}
+				if(_type==1){
+					_item=_city;
+				}
+				if(_type==2){
+					_item=_town;
+				}
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"AreaPanel",{method:"modify",index:index,item:_item,type:_type},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				cancel_clickHandler();
+			}
+
+
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<fx:Array id="validatorArray">
+			<mx:StringValidator 
+				source="{name_id}" 
+				requiredFieldError="名称不能为空！"
+				property="text" 
+				required="true" />
+			
+		</fx:Array>
+	</fx:Declarations>
+	<mx:Label paddingLeft="100" id="type_id"/>
+	<mx:Form width="100%" >
+		<mx:FormItem label="名称">
+			<s:TextInput id="name_id"/>
+		</mx:FormItem>
+		<mx:FormItem id="spece_id" label="支持货到付款" includeInLayout="false" visible="false">
+			<mx:CheckBox id="flag_id"/>
+		</mx:FormItem>
+		<mx:FormItem label="创建人">
+			<mx:Label id="creator_id"/>
+		</mx:FormItem>
+		<mx:FormItem label="创建时间">
+			<mx:Label id="creatorDate_id"/>
+		</mx:FormItem>
+	</mx:Form>
+	 <mx:HBox paddingLeft="60">
+		 <mx:Button label="确定" click="saveOrModify_clickHandler(event)"/> <mx:Button label="取消" click="cancel_clickHandler(event)"/>
+	 </mx:HBox>
+</mx:Module>

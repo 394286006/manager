@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   name="订单管理"
+		   layout="absolute" width="400" height="300" 
+		   initialize="module1_initializeHandler(event)" 
+		   creationComplete="module1_creationCompleteHandler(event)"
+		   remove="module1_removeHandler(event)" >
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			include "../../../../../mvc/base/BaseImport.as";
+
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+			protected function cancel_clickHandler(event:MouseEvent):void
+			{
+				
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+			
+			
+			protected function saveOrModify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:Form x="101" y="56">
+		<mx:FormItem label="用户名">
+			<s:TextInput/>
+		</mx:FormItem>
+		<mx:FormItem label="密码">
+			<s:TextInput/>
+		</mx:FormItem>
+		<mx:FormItem label="确认密码">
+			<s:TextInput/>
+		</mx:FormItem>
+		<mx:FormItem label="中文名">
+			<s:TextInput/>
+		</mx:FormItem>
+		<mx:FormItem label="邮箱地址">
+			<s:TextInput/>
+		</mx:FormItem>
+		<mx:FormItem label="QQ或MSN">
+			<s:TextInput/>
+		</mx:FormItem>
+		<mx:HBox width="100%" horizontalAlign="right">
+			<s:Button label="确定" click="saveOrModify_clickHandler(event)"/>
+		</mx:HBox>
+		
+	</mx:Form>
+	<mx:Form>
+		<mx:FormItem label="办公电话">
+			<s:TextInput width="188"/>
+		</mx:FormItem>
+		<mx:FormItem label="私人电话">
+			<s:TextInput width="188"/>
+		</mx:FormItem>
+		<mx:FormItem label="联系地址">
+			<s:TextArea height="106"/>
+		</mx:FormItem>
+		<mx:HBox width="100%" >
+			<mx:Spacer width="20"/>
+			<s:Button label="取消" click="cancel_clickHandler(event)"/>
+		</mx:HBox>
+	</mx:Form>
+</mx:Module>

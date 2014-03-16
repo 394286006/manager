@@ -1,0 +1,100 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+@namespace common "minn.common.*";
+@namespace containers "flexmdi.containers.*";
+@namespace tabBarClasses "flexmdi.controls.tabBarClasses.*";
+@namespace controls "flexmdi.controls.*";
+@namespace flexlib "http://code.google.com/p/flexlib/" ;
+s|VGroup{
+
+	width: 1000;
+	height: 1000;
+}
+mx|MenuBar{
+	width: 1000;
+	height: 1000;
+}
+mx|HDividedBox{
+	width: 1000;
+	height: 1000;
+}
+mx|Tree{
+	width: 1000;
+	height: 1000;
+}
+
+mx|Panel.windstyle1{
+	headerHeight:0px;
+	borderVisible:false;
+}
+containers|SuperTabNavigator.suponeTab {
+	firstTabStyleName: tabNavigatorFirstTab;
+	tabStyleName: tabNavigatorTab;
+	selectedTabTextStyleName: tabNavigatorSelectedTabText;
+	borderStyle: none;
+}
+.tabNavigatorFirstTab
+{
+	color: #4474B6;
+	fontFamily: Arial;
+	fontSize: 12;
+	fontWeight: normal;
+	borderColor: #B7BABC;
+	upSkin: Embed(source="assets/img/tab_no.jpg");
+	overSkin: Embed(source="assets/img/tab_no.jpg");
+	downSkin: Embed(source="assets/img/tab_yes.jpg");
+	disabledSkin: Embed(source="assets/img/tab_yes.jpg");
+	selectedUpSkin: Embed(source="assets/img/tab_yes.jpg");
+	selectedOverSkin: Embed(source="assets/img/tab_yes.jpg");
+	selectedDownSkin: Embed(source="assets/img/tab_no.jpg");
+}
+.tabNavigatorTab
+{
+	upSkin: Embed(source="assets/img/tab_no.jpg");
+	overSkin: Embed(source="assets/img/tab_no.jpg");
+	downSkin: Embed(source="assets/img/tab_yes.jpg");
+	disabledSkin: Embed(source="assets/img/tab_yes.jpg");
+	selectedUpSkin: Embed(source="assets/img/tab_yes.jpg");
+	selectedOverSkin: Embed(source="assets/img/tab_yes.jpg");
+	selectedDownSkin: Embed(source="assets/img/tab_no.jpg");
+	selectedDisabledSkin: Embed(source="assets/img/tab_no.jpg");
+	color: #8097B7;
+	fontFamily: Arial;
+	fontSize: 12;
+	fontWeight: normal;
+	leading: 2; 
+}
+.tabNavigatorSelectedTabText
+{
+	borderColor: #B7BABC;
+	upSkin: Embed(source="assets/img/tab_yes.jpg");
+	overSkin: Embed(source="assets/img/tab_yes.jpg");
+	downSkin: Embed(source="assets/img/tab_yes.jpg");
+	disabledSkin: Embed(source="assets/img/tab_yes.jpg");
+	selectedUpSkin: Embed(source="assets/img/tab_yes.jpg");
+	selectedOverSkin: Embed(source="assets/img/tab_yes.jpg");
+	selectedDownSkin: Embed(source="assets/img/tab_yes.jpg");
+	color: #4474B6;
+	fontFamily: Arial;
+	fontSize: 12;
+	fontWeight: normal;
+}
+mx|Tree.menetree{
+	
+}
+.listItem
+{
+	paddingLeft:            4;
+	paddingRight:           4;
+	horizontalGap:          5;
+	verticalAlign:          "middle";
+	backgroundColor:        #FFFFFF;
+	backgroundAlpha:        .5;
+	borderStyle:            "outset";
+}
+.homeSection
+{
+	cornerRadius:           4;
+	borderStyle:            "solid";
+}

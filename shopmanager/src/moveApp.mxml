@@ -1,0 +1,32 @@
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" >  
+		
+	
+	<fx:Script>  
+		<![CDATA[
+		import flash.events.Event;   
+		import mx.effects.Effect;   
+		import mx.effects.Move;   
+		// 单击事件监听器，传递目标组件和父类容器的中心的坐标值   
+		// 到建立行为效果的函数中。   
+		private function playMove(target:Object, newX:Number, newY:Number):void {   
+			var myMove:Move = new Move(target);   
+			myMove.duration = 1000;   
+			myMove.xTo = newX - target.width/2;   
+			myMove.yTo = newY - target.height/2;   
+			myMove.play();   
+		}   
+		// 建立移动行为效果并显示。   
+			private function handleClick(eventObj:Event):void {   
+			var targetComponent:Object = eventObj.currentTarget;   
+			var parentCont:Object = targetComponent.parent;   
+			playMove(eventObj.target, parentCont.width/2, parentCont.height/2);   
+		}   
+		]]>
+	</fx:Script>  
+	<mx:Panel title="建立可重复使用的行为效果" width="95%" height="95%"    
+			  paddingTop="5" paddingLeft="10" paddingRight="10" paddingBottom="5">  
+		<mx:Button label="移动" click="handleClick(event)"/>  
+	</mx:Panel>  
+</s:Application>  

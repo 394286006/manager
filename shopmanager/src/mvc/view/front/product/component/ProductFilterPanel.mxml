@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"  width="250" height="100%" currentState="showingProducts"
+		 xmlns:component="mvc.view.front.product.component.*" 
+		 xmlns:vo="mvc.view.front.product.vo.*">
+	<mx:Metadata>
+		[Event(name="filter", type="mvc.view.front.product.event.ProductFilterEvent")] 
+		[Event(name="compare",type="flash.events.Event")]
+	</mx:Metadata>
+	<mx:Script source="../../../../../mvc/base/FrontBaseImport.as"/>
+	<mx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mvc.view.front.product.event.ProductFilterEvent;
+			
+			private var thumbBeingPressed:Boolean;
+			
+			protected function help_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				WindowProxy.getInstance().getModuleWindow("mvc/view/front/help/UserHelper.swf");
+			}
+			
+			private function dispatchFilter():void
+			{
+				var event:ProductFilterEvent = 
+					new ProductFilterEvent(filter, thumbBeingPressed);
+				dispatchEvent(event);
+				currentState = "showingProducts";
+			}
+			
+			private function sliderValue(values:Array, index:int):Number
+			{
+				return values[index];
+			}
+			
+			private function productRemoved():void
+			{
+				if (currentState == "showingComparison")
+				{
+					if (productList.items.length == 0)
+					{
+						dispatchFilter();
+					}
+					else
+					{
+						attemptCompare();
+					}
+				}
+			}
+			
+			private function removeAllCompareProduct():void{
+				productList.items=[];
+				productList.removeAllChildren();
+				productRemoved();
+			}
+			private function attemptCompare():void
+			{
+				//Alert.show('attemptCompare');
+				if (productList.items.length > 0)
+				{
+					dispatchEvent(new Event("compare"));
+					currentState = "showingComparison";
+				}
+				else
+				{
+					Alert.show("There are no items to compare.", "Compare");
+				}
+			}
+		]]>
+	</mx:Script>
+
+	
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<vo:ProductFilter id="filter">
+			<vo:series>{series.selectedItem}</vo:series>
+			<vo:minPrice>{sliderValue(priceSlider.values, 0)}</vo:minPrice>
+			<vo:maxPrice>{sliderValue(priceSlider.values, 1)}</vo:maxPrice>
+		    <vo:name>{pname.text}</vo:name>
+		</vo:ProductFilter>
+		<mx:CurrencyFormatter currencySymbol="￥" id="cf"/>    
+
+	
+	<mx:Canvas  width="100%" styleName="homeSection" height="144">
+		<mx:Label text="名称" height="18" width="30" x="1" y="33"/>
+		<mx:TextInput x="41" y="28" width="179">
+		</mx:TextInput>
+		<mx:Button width="23" icon="@Embed(source='assets/icon_magnifier.png')" x="220" y="29"/>
+		<mx:Label text="类别" height="18" width="30" x="0" y="66"/>
+		<mx:ComboBox x="41" y="63" width="199" id="series"/>
+		<mx:Label text="价格" height="18" width="30" x="1" y="91"/>
+		<mx:HSlider x="10" y="118" width="230"/>
+		<mx:Label text="查找" height="18" width="30" x="2" y="5"/>
+	</mx:Canvas>
+	<mx:Canvas width="100%"  styleName="homeSection" height="131">
+		<mx:Label text="过滤"/>
+		<mx:Label text="价格" height="18" width="30" x="5" y="62"/>
+		<mx:Label text="名称" height="18" width="30" x="1" y="33"/>
+		<mx:Label text="颜色" height="18" width="30" x="0" y="108"/>
+		<mx:TextInput x="41" y="28" width="179" id="pname" change="dispatchFilter()">
+		</mx:TextInput>
+		<mx:HSlider id="priceSlider" styleName="glassSlider" minimum="0" maximum="1100" tickInterval="50" snapInterval="10"
+					width="100%" thumbCount="2" values="[0,1100]" labels="[$0,$1100]" liveDragging="true" dataTipFormatFunction="{cf.format}"
+					change="dispatchFilter()"
+					thumbPress="thumbBeingPressed=true"
+					thumbRelease="thumbBeingPressed=false;dispatchFilter()" x="0" y="71"/>
+		
+	</mx:Canvas>
+	<mx:VBox width="100%" height="100%"  verticalGap="0" >
+		<mx:HBox width="100%">
+			<mx:Label text="比较(把商品拖到这里)"/><mx:Label text="帮助?" click="help_clickHandler(event)"/>
+		</mx:HBox>
+		
+		<component:ProductList id="productList" width="100%" height="100%"  styleName="homeSection"
+							   removeProduct="productRemoved()" >
+			
+		</component:ProductList>
+		<mx:HBox width="100%">
+			<mx:Button label="清空" id="clearButton" click="removeAllCompareProduct()"/><mx:Spacer width="100%"/><mx:Button label="比较" id="compareButton"/>
+		</mx:HBox>
+	</mx:VBox>
+	<mx:states>
+		<mx:State name="showingProducts">
+			<mx:SetProperty target="{compareButton}" name="label" value="比较" />
+			<mx:SetStyle target="{compareButton}" name="icon" value="@Embed('assets/icon_compare.png')" />
+			<mx:SetEventHandler target="{compareButton}" name="click" handler="attemptCompare()" />
+		</mx:State>
+		<mx:State name="showingComparison">
+			<mx:SetProperty target="{compareButton}" name="label" value="返回列表" />
+			<mx:SetStyle target="{compareButton}" name="icon" value="@Embed('assets/icon_tiles.png')" />
+			<mx:SetEventHandler target="{compareButton}" name="click" handler="dispatchFilter()" />
+		</mx:State>
+	</mx:states>
+	
+</mx:VBox>

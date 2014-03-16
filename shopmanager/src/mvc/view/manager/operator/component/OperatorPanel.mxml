@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			xmlns:s="library://ns.adobe.com/flex/spark" 
+			xmlns:mx="library://ns.adobe.com/flex/mx"
+		   name="添加管理用户"
+		    layout="horizontal" width="532" height="260" 
+		   preinitialize="module1_preinitializeHandler(event)"
+		   creationComplete="module1_creationCompleteHandler(event)"
+		   removed="module1_removedHandler(event)" >
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mx.events.ValidationResultEvent;
+			import mx.validators.Validator;
+			
+			
+			[Bindable]
+			private var operator:Operator=null;
+			private var index:int=0;
+			protected function module1_preinitializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(this.parentDocument.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+			}
+
+        private function messageHandler(e:MinnMessageEvent):void{
+			operator=e.data.item as Operator;
+			index=e.data.index;
+//			Alert.show(operator.color.toString());
+		}
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				
+				// TODO Auto-generated method stub
+//				MessageEventManager.getInstance().addEventListener(this.parentDocument.toString()+MessageEvent.CREATIONCOMPLETE_MESSAGE,function():void{
+//					Alert.show('d');
+//				});
+//				operator=this..operator;
+//				BindingUtils.bindProperty(operator,"opr_name_en",opr_name_en,"text");
+//				BindingUtils.bindProperty(operator,"opr_name_ch",opr_name_ch,"text");
+//				BindingUtils.bindProperty(operator,"password",password,"text");
+//				BindingUtils.bindProperty(operator,"email",email,"text");
+//				BindingUtils.bindProperty(operator,"qq_msn",qq_msn,"text");
+//				BindingUtils.bindProperty(operator,"office_phone",office_phone,"text");
+//				BindingUtils.bindProperty(operator,"person_phone",person_phone,"text");
+//				BindingUtils.bindProperty(operator,"address",address,"text");
+				appFacade.startup(AppCommand.OPERATOR_PANEL_STARTUP,this);
+			}
+
+
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+//				BindingUtils.bindProperty(nameLabel, "text", userVO, "name");  
+//			Alert.show('d');
+			}
+
+
+			public function cancel_clickHandler(event:MouseEvent=null):void
+			{
+				
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+
+
+			protected function saveOrModify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var validatorErrorArray:Array = Validator.validateAll(validatorArray); 
+				var err:ValidationResultEvent; 
+				var errorMessageArray:Array = []; 
+				if(validatorErrorArray.length>0){
+					for each (err in validatorErrorArray) { 
+						errorMessageArray.push(err.message); 
+					} 
+					
+					if(errorMessageArray.length >0){
+						Alert.show(errorMessageArray.join("\n\n"), "请按照以下错误提示信息重新填写", Alert.OK);
+						
+						return;
+					}
+				}
+				
+				operator._sid=this.parentApplication.PRIVATEKEY;
+				operator.opr_name_en=opr_name_en.text;
+				operator.password=password.text;
+				operator.opr_name_ch=opr_name_ch.text;
+				operator.email=email.text;
+				operator.qq_msn=qq_msn.text;
+				operator.office_phone=office_phone.text;
+				operator.person_phone=person_phone.text;
+				operator.address=address.text;
+				operator.creator=this.parentApplication.operator.id;
+				operator._creatorName=this.parentApplication.operator.opr_name_ch;
+//				operator.createDate=MinnUtil.getCurentDateAndTime();
+//				if(operator.color==1){
+//				MinnMessageEventManager.getInstance().dispatchEvent(new MinnMessageEvent(MinnMessageEvent.MESSAGE+"OperatorPanel",{index:index,item:operator},true));				
+				var evt:OperatorEvent=null;
+				if(operator.id=='')
+				   evt=new OperatorEvent(OperatorEvent.OPERATOR_ADD,{item:operator},true);
+				else{
+					evt=new OperatorEvent(OperatorEvent.OPERATOR_MODIFY,{item:operator},true);
+				}
+				this.dispatchEvent(evt);
+//				}
+//				if(operator.color==2){
+////					this.dispatchEvent(new OperatorEvent(OperatorEvent.OPERATOR_MODIFY,operator,true));
+//////					Alert.show("modify");
+//					MessageEventManager.getInstance().dispatchEvent(new OperatorEvent(OperatorEvent.OPERATOR_MODIFY+"OperatorPanel",operator,true));
+//				}
+//				operator=new Operator();
+//				MessageEventManager.getInstance().dispatchEvent(new OperatorEvent(OperatorEvent.OPERATOR_ADD+"OperatorPanel",operator,true));
+//				cancel_clickHandler();
+			}
+
+
+			protected function module1_removedHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+//				FlexGlobals.topLevelApplication.parent.removeEventListener(OperatorEvent.OPERATOR_LOGIN_TT,test);
+			}
+
+
+			/**
+			 *  添加数据成功回调函数 
+			 **/
+			public function invokeAdd(o:Object):void{
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"OperatorPanel",{method:"add",index:index,item:o},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				cancel_clickHandler();
+			}
+		
+			private function emailValidator_valid(evt:ValidationResultEvent):void {
+				//				textInput.errorString = "";
+				//				message.text = "";
+				//				Alert.show(textInput.text, "You entered a valid email address:");
+//					Alert.show(evt.message,"提示");
+				
+			}
+			
+			private function emailValidator_invalid(evt:ValidationResultEvent):void {
+				//				textInput.errorString = evt.message;
+				//				message.text = evt.message;
+				//				if(evt.currentTarget.text!='')
+//					Alert.show(evt.message,"提示");
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+		<fx:Array id="validatorArray">
+			<mx:StringValidator 
+				source="{opr_name_en}" 
+				requiredFieldError="用户名不能为空！"
+				property="text" 
+				required="true" />
+			<mx:StringValidator
+				source="{password}" 
+				requiredFieldError="密 码不能为空！"
+				property="text" 
+				required="true" />
+			<mx:StringValidator
+				source="{confirm}" 
+				requiredFieldError="确认密码不能为空！"
+				property="text" 
+				required="true" />
+			<mx:StringValidator 
+				source="{opr_name_ch}" 
+				requiredFieldError="昵称不能为空！"
+				property="text" 
+				required="true" />
+			<mx:EmailValidator 
+							   source="{email}" 
+							   requiredFieldError="email不能为空！"
+							   valid="emailValidator_valid(event)"
+							   invalid="emailValidator_invalid(event)"
+							   property="text" 
+							   required="true" />
+			<mx:StringValidator 
+				source="{office_phone}" 
+				requiredFieldError="办公电话不能为空！"
+				property="text" 
+				required="true" />
+			<mx:StringValidator 
+				source="{person_phone}" 
+				requiredFieldError="私人电话不能为空！"
+				property="text" 
+				required="true" />
+			<mx:StringValidator 
+				source="{address}" 
+				requiredFieldError="联系地址不能为空！"
+				property="text" 
+				required="true" />
+		</fx:Array>
+	</fx:Declarations>
+	<mx:Form x="101" y="56">
+		<mx:FormItem label="用户名">
+			<s:TextInput text="{operator.opr_name_en}" id="opr_name_en"/>
+		</mx:FormItem>
+		<mx:FormItem label="密码" >
+			<s:TextInput text="{operator.password}" id="password"/>
+		</mx:FormItem>
+		<mx:FormItem label="确认密码">
+			<s:TextInput id="confirm"/>
+		</mx:FormItem>
+		<mx:FormItem label="昵称">
+			<s:TextInput text="{operator.opr_name_ch}" id="opr_name_ch"/>
+		</mx:FormItem>
+		<mx:FormItem label="邮箱地址">
+			<s:TextInput text="{operator.email}" id="email"/>
+		</mx:FormItem>
+		<mx:FormItem label="QQ或MSN">
+			<s:TextInput text="{operator.qq_msn}" id="qq_msn"/>
+		</mx:FormItem>
+		<mx:HBox width="100%" horizontalAlign="right">
+			<s:Button label="确定" click="saveOrModify_clickHandler(event)"/>
+		</mx:HBox>
+			
+	</mx:Form>
+	<mx:Form>
+		<mx:FormItem label="办公电话">
+			<s:TextInput width="188" text="{operator.office_phone}" id="office_phone"/>
+		</mx:FormItem>
+		<mx:FormItem label="私人电话">
+			<s:TextInput width="188" text="{operator.person_phone}" id="person_phone"/>
+		</mx:FormItem>
+		<mx:FormItem label="联系地址">
+			<s:TextArea height="106" text="{operator.address}" id="address"/>
+		</mx:FormItem>
+		<mx:HBox width="100%" >
+			<mx:Spacer width="20"/>
+			<s:Button label="取消" click="cancel_clickHandler(event)"/>
+		</mx:HBox>
+	</mx:Form>
+
+</mx:Module>

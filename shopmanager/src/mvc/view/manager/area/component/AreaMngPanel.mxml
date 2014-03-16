@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/halo" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" name="配送地区管理" layout="horizontal" width="100%" height="100%" initialize="module1_initializeHandler(event)" creationComplete="module1_creationCompleteHandler(event)" removed="module1_removedHandler(event)">
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import minn.common.Entrypt;
+			import minn.proxy.WindowProxy;
+			
+			import mvc.model.area.vo.City;
+			import mvc.model.area.vo.Province;
+			import mvc.model.area.vo.Town;
+			import mvc.view.manager.area.event.AreaEvent;
+			
+			import mx.events.CollectionEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			
+			[Bindable]
+			private var provinces:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var citys:ArrayCollection=new ArrayCollection();
+			[Bindable]
+			private var towns:ArrayCollection=new ArrayCollection();
+			
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(MinnMessageEvent.MESSAGE+"AreaPanel",messageHandler);
+			}
+			protected function module1_removedHandler(event:Event):void{
+				if(event.target==this){
+				   MinnMessageEventManager.getInstance().removeEventListener(MinnMessageEvent.MESSAGE+"AreaPanel",messageHandler);
+				}
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				//				var _ctype:Object=e.data.item;
+				//				var op:Operator=e.data.item as Operator;
+				//				Alert.show(_ctype.color);
+				var _p:Province;
+				var _c:City;
+				var _t:Town;
+				var _type:int=e.data.type;
+				if(e.data.method=="add"){
+					if(_type==0){
+						_p=e.data.item as Province;
+						MinnUtil.reverse(provinces);
+						provinces.addItem(_p);
+						MinnUtil.reverse(provinces);
+					}
+					if(_type==1){
+						_c=e.data.item as City;
+						MinnUtil.reverse(citys);
+						citys.addItem(_c);
+						MinnUtil.reverse(citys);
+						province_id.selectedItem._citys=citys.toArray();
+					}
+					if(_type==2){
+						_t=e.data.item as Town;
+						MinnUtil.reverse(towns);
+						towns.addItem(_t);
+						MinnUtil.reverse(towns);
+						city_id.selectedItem._towns=towns.toArray();
+					}
+				
+				}else{
+					if(_type==0){
+//						provinces.setItemAt(_p,e.data.index);
+					}
+					if(_type==1){
+						
+//						_c=e.data.item as City;
+//						citys.setItemAt(_c,e.data.index);
+						province_id.selectedItem._citys=citys.toArray();
+					}
+					if(_type==2){
+//						_t=e.data.item as Town;
+//						towns.setItemAt(_t,e.data.index);
+						city_id.selectedItem._towns=towns.toArray();
+					}
+					
+				}
+				
+				//				else if(_ctype.color==2)
+				//					ee=new MerchandiseEvent(MerchandiseEvent.CTYPE_MERCHANDISE_MODIFY,e.data,true);
+				//				this.dispatchEvent(ee);
+			}
+			
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				appFacade.startup(AppCommand.AREA_MNG_STARTUP,this);
+				query_clickHandler();
+			}
+			
+			protected function addClickHandler(event:MouseEvent,type:int,name:String):void
+			{
+				// TODO Auto-generated method stub
+				var _item:*;
+				var _pobj:*=null;
+				if(type==0){
+					_item=new Province();
+					
+				}
+				if(type==1){
+					if(province_id.selectedItem){
+						_pobj=province_id.selectedItem as Province;
+					   _item=new City();
+					}
+					else{
+						Alert.show("请先选择省份!","提示");
+						return;
+					}
+				}
+				if(type==2){
+					if(city_id.selectedItem){
+						_pobj=city_id.selectedItem as City;
+					   _item=new Town();
+					}else{
+						Alert.show("请先选择市!","提示");
+						return;
+					}
+				}
+				_item._color="1";
+				_item._sid=this.parentApplication.PRIVATEKEY;
+				Entrypt.loadswfObject("mvc/view/manager/area/component/AreaPanel"+Config.SUBFFIX,function(evt:Event):void{
+					loadSpTitleswfCompleteHandler(evt,"AreaPanel.swf",{method:"add",index:-1,item:_item,name:name,type:type,pobj:_pobj});
+				});
+//				WindowProxy.getInstance().getSpTitleWindow("mvc/view/manager/area/component/AreaPanel.swf",{method:"add",index:-1,item:_item,name:name,type:type,pobj:_pobj}); 
+			}
+			private function loadSpTitleswfCompleteHandler(evt:Event,url:String,d:Object):void{
+//				WindowProxy.getInstance().getSpTitleWindow(url,evt.target.data as ByteArray,d,this);
+				if(Config.SUBFFIX==Config.FLAG)
+					WindowProxy.getInstance().getSpTitleWindow(url,evt.target.data as ByteArray,d,this);
+				else
+				   WindowProxy.getInstance().getSpTitleWindow(url,Entrypt.uncompress(evt.target.data as ByteArray,this.parentApplication.KEY),d,this);
+			}
+			protected function modify_clickHandler(event:MouseEvent,type:int,name:String):void
+			{
+				// TODO Auto-generated method stub
+				
+				if(province_id.selectedItem||city_id.selectedItem||town_id.selectedItem){
+					var _item:*=null;
+					var _pobj:*=null;
+					if(type==0){
+						_item=province_id.selectedItem as Province;
+						
+					}
+					if(type==1){
+						_pobj=province_id.selectedItem as Province;
+						_item=city_id.selectedItem as City;
+						
+					}
+					if(type==2){
+						_pobj=city_id.selectedItem as City;
+						_item=town_id.selectedItem as Town;
+					}
+					_item._color="2";
+					_item._sid=this.parentApplication.PRIVATEKEY;
+					Entrypt.loadswfObject("mvc/view/manager/area/component/AreaPanel"+Config.SUBFFIX,function(evt:Event):void{
+						
+						loadSpTitleswfCompleteHandler(evt,"AreaPanel.swf",{method:"modify",index:-1,item:_item,name:name,type:type,pobj:_pobj});
+					});
+//					WindowProxy.getInstance().getSpTitleWindow("mvc/view/manager/area/component/AreaPanel.swf",{method:"modify",index:-1,item:_item,name:name,type:type,pobj:_pobj});
+				}else {
+					Alert.show("请先选择一条数据!","提示");
+				}
+			}
+			private function query_clickHandler(e:Event=null):void{
+				
+				this.dispatchEvent(new AreaEvent(AreaEvent.AREA_QUERY,{item:{_sid:this.parentApplication.PRIVATEKEY}},true));
+			}
+			
+			/**
+			 * 查询结果回调函数
+			 **/ 
+			public function invokeQuery(arr:ArrayCollection,recordCount:int):void{
+				p_id.text="总共有"+recordCount+"条关于省份的数据";
+				provinces.removeAll();
+				province_id.itemRenderer=null;
+				provinces.addAll(arr);
+				
+
+				//				Alert.show(ctypes.length+'');
+			}
+			
+
+
+			protected function province_id_itemClickHandler(event:ListEvent):void
+			{
+				// TODO Auto-generated method stub
+				citys.removeAll();
+				city_id.itemRenderer=null;
+				var arr:Array=province_id.selectedItem._citys as Array;
+				if(arr)
+				if(arr[0] is City){
+					citys.addAll(new ArrayCollection(arr));
+				}else{
+				for(var i:int=0;i<arr.length;i++){
+					var v:City=new City();
+				
+					citys.addItem(v);
+				}
+				MinnUtil.copyProperty(citys,arr);
+				}
+				c_id.text="当前总共有"+citys.length+"条关于"+province_id.selectedItem.name+" 的数据";
+			}
+
+
+			protected function city_id_clickHandler(event:ListEvent):void
+			{
+				// TODO Auto-generated method stub
+				towns.removeAll();
+				town_id.itemRenderer=null;
+				var arr:Array=city_id.selectedItem._towns as Array;
+				if(arr)
+				if(arr[0] is Town){
+					towns.addAll(new ArrayCollection(arr));
+				}else{
+					for(var i:int=0;i<arr.length;i++){
+						var v:Town=new Town();
+						towns.addItem(v);
+					}
+					MinnUtil.copyProperty(towns,arr);
+				}
+				t_id.text="当前总共有"+towns.length+"条关于"+city_id.selectedItem.name+" 的数据";
+			}
+
+
+			protected function del_clickHandler(event:MouseEvent,type:int,name:String):void
+			{
+				// TODO Auto-generated method stub
+					var _item:*=null;
+					var _index:int=0;
+					if(type==0){
+						if(province_id.selectedItem){
+							_item=province_id.selectedItem as Province;
+							_index=province_id.selectedIndex;
+							_item._sid=this.parentApplication.PRIVATEKEY;
+							this.dispatchEvent(new AreaEvent(AreaEvent.AREA_PROVINCE_DEL,{index:_index,item:_item},true));
+							return;
+						}else{
+							Alert.show("请先选择一条省级数据!","提示");
+							return;
+						}
+					}else if(type==1){
+						if(city_id.selectedItem){
+							_item=city_id.selectedItem as City;
+							_index=city_id.selectedIndex;
+							_item._sid=this.parentApplication.PRIVATEKEY;
+							this.dispatchEvent(new AreaEvent(AreaEvent.AREA_CITY_DEL,{index:_index,item:_item},true));
+							return;
+						}else{
+							Alert.show("请先选择一条市级数据!","提示");
+							return;
+						}
+					}else if(type==2){
+						if(town_id.selectedItem){
+							_item=town_id.selectedItem as Town;
+							_index=town_id.selectedIndex;
+							_item._sid=this.parentApplication.PRIVATEKEY;
+							this.dispatchEvent(new AreaEvent(AreaEvent.AREA_TOWN_DEL,{index:_index,item:_item},true));
+							return;
+					    }else{
+						   Alert.show("请先选择一条镇级数据!","提示");
+						   return;
+						}
+					}else{
+						Alert.show("请先选择一条数据!","提示");
+					}
+			}
+			public function invokeDel(type:int):void
+			{
+				if(type==0){
+					provinces.removeItemAt(provinces.getItemIndex(province_id.selectedItem));
+					citys.removeAll();
+					towns.removeAll();
+				}
+				if(type==1){
+					citys.removeItemAt(citys.getItemIndex(city_id.selectedItem));
+					towns.removeAll();
+				}
+				if(type==2){
+					towns.removeItemAt(towns.getItemIndex(town_id.selectedItem));
+				}
+			}
+
+
+			protected function menu_id_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.dispatchEvent(new AreaEvent(AreaEvent.AREA_GENERATOR_MENU,null,true));
+			}
+
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:VBox width="350" height="100%">
+		<mx:HBox horizontalGap="0">
+			<mx:Label text="省份过滤:"/><mx:TextInput width="80"/><mx:Button label="添加" click="addClickHandler(event,0,'省份管理')"/><mx:Button label="修改" click="modify_clickHandler(event,0,'省份管理')"/><mx:Button label="删除" click="del_clickHandler(event,0,'省份管理')"/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label id="p_id"/><mx:Button id="menu_id" label="生成菜单" click="menu_id_clickHandler(event)"/>
+		</mx:HBox>
+		<mx:DataGrid width="100%"  height="100%" dataProvider="{provinces}" id="province_id" itemClick="province_id_itemClickHandler(event)">
+			<mx:columns>
+				<mx:DataGridColumn headerText="名称" dataField="name" itemRenderer="minn.common.MinnLabel"/>
+				<mx:DataGridColumn headerText="创建人" dataField="_creatorName" itemRenderer="minn.common.MinnLabel"/>
+				<mx:DataGridColumn headerText="创建时间" dataField="createDate" itemRenderer="minn.common.MinnLabel"/>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:VBox>
+	<mx:VBox width="350" height="100%">
+		<mx:HBox horizontalGap="0">
+			<mx:Label text="城市过滤:"/><mx:TextInput width="80"/><mx:Button label="添加" click="addClickHandler(event,1,'城市管理')"/><mx:Button label="修改"  click="modify_clickHandler(event,1,'城市管理')"/><mx:Button label="删除"  click="del_clickHandler(event,1,'城市管理')"/>
+		</mx:HBox>
+		<mx:Label id="c_id"/>
+		<mx:DataGrid width="100%" sortableColumns="false" height="100%" dataProvider="{citys}" id="city_id" itemClick="city_id_clickHandler(event)">
+			<mx:columns>
+				<mx:DataGridColumn headerText="名称" dataField="name" itemRenderer="minn.common.MinnLabel"/>
+				<mx:DataGridColumn headerText="支持货到付款" dataField="descript" visible="false" itemRenderer="minn.common.MinnLabel"/>
+				<mx:DataGridColumn headerText="创建人" dataField="_creatorName" itemRenderer="minn.common.MinnLabel"/>
+				<mx:DataGridColumn headerText="创建时间" dataField="createDate" itemRenderer="minn.common.MinnLabel"/>
+				
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:VBox>
+	<mx:VBox width="350" height="100%">
+		<mx:HBox horizontalGap="0">
+			<mx:Label text="镇区过滤:"/><mx:TextInput width="80"/><mx:Button label="添加" click="addClickHandler(event,2,'镇区管理')"/><mx:Button label="修改"  click="modify_clickHandler(event,2,'镇区管理')"/><mx:Button label="删除" click="del_clickHandler(event,2,'镇区管理')"/>
+		</mx:HBox>
+		<mx:Label id="t_id"/>
+		<mx:DataGrid width="100%" sortableColumns="false" height="100%"  id="town_id" dataProvider="{towns}">
+			<mx:columns>
+				<mx:DataGridColumn headerText="名称" dataField="name" itemRenderer="minn.common.MinnLabel"/>
+				<mx:DataGridColumn headerText="创建人" dataField="_creatorName" itemRenderer="minn.common.MinnLabel"/>
+				<mx:DataGridColumn headerText="创建时间" dataField="createDate" itemRenderer="minn.common.MinnLabel"/>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:VBox>
+</mx:Module>

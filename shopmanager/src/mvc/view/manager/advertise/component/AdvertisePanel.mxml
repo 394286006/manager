@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   name="广告操作"
+		   layout="absolute" width="800" height="300" 
+		   initialize="module1_initializeHandler(event)" 
+		   creationComplete="module1_creationCompleteHandler(event)"
+		   remove="module1_removeHandler(event)" xmlns:base="com.base.*"
+		   >
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import com.adobe.serialization.json.JSON;
+			
+			import minn.message.Message;
+			
+			import mvc.model.advertise.vo.Advertise;
+			import mvc.view.manager.advertise.event.AdvertiseEvent;
+			
+			import mx.controls.ProgressBar;
+			import mx.events.ValidationResultEvent;
+			import mx.validators.Validator;
+			
+			[Bindable]
+			private var _mes:Advertise=null;
+			private var method:String="add";
+			private var index:int=0;
+			private var upfile:FileReference;
+			private var adtypes:FileFilter;
+			private var pbrUploadProgress:ProgressBar;
+		  
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(this.parent.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				method=e.data.method;
+				index=e.data.index;
+				_mes=e.data.item as Advertise;
+				adm_id.url=_mes.url+Config.UPLOAD_AD_DIR+_mes.filename;
+				
+			}
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				appFacade.startup(AppCommand.ADVERTISE_PANEL_STARTUP,this);
+				creator_id.text=this.parentApplication.operator.opr_name_ch;
+				
+				var loader:URLLoader=new URLLoader();
+				var request:URLRequest =  new URLRequest(Config.DOMAIN_MENU);
+				loader.addEventListener(Event.COMPLETE,menuResult);
+				loader.load(request);
+				
+				upfile=new FileReference();
+				upfile.addEventListener(Event.SELECT, selectHandler);
+				upfile.addEventListener(Event.OPEN, openHandler);
+				upfile.addEventListener(ProgressEvent.PROGRESS, progressHandler);
+				upfile.addEventListener(IOErrorEvent.IO_ERROR, uploadIoErrorHandler);
+				upfile.addEventListener(DataEvent.UPLOAD_COMPLETE_DATA, uploadCompleteHandler);
+				upfile.addEventListener(Event.CANCEL,cancelHandler);
+				pbrUploadProgress=new ProgressBar();
+				pbrUploadProgress.indeterminate=false;
+				pbrUploadProgress.mode="manual";
+				pbrUploadProgress.labelPlacement="bottom";
+				pbrUploadProgress.setStyle("trackHeight",9);
+				pbrUploadProgress.setStyle("fontWeight","bold");
+				pbrUploadProgress.setStyle("color","red");
+				adtypes = new FileFilter("模板(swf)", "*.swf");
+				
+			}
+			
+			private function menuResult(evt:Event):void{
+				var loader:URLLoader=URLLoader(evt.target);
+				var domains:Array=JSON.decode(decodeURIComponent(loader.data));
+				url_id.dataProvider=domains;
+				
+			}
+			
+			
+			
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+			
+			public function cancel_clickHandler(event:MouseEvent=null):void
+			{
+				
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+			
+			
+			protected function saveOrModify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var validatorErrorArray:Array = Validator.validateAll(validatorArray); 
+				var err:ValidationResultEvent; 
+				var errorMessageArray:Array = []; 
+				if(validatorErrorArray.length>0){
+					for each (err in validatorErrorArray) { 
+						errorMessageArray.push(err.message); 
+					} 
+					
+					if(errorMessageArray.length >0){
+						Alert.show(errorMessageArray.join("\n\n"), "请按照以下错误提示信息重新填写", Alert.OK);
+						
+						return;
+					}
+				}
+				
+				
+				
+				
+				_mes._sid=this.parentApplication.PRIVATEKEY;
+				_mes.title=name_id.text;
+				_mes.content=desc_id.text;
+				_mes.url=url_id.selectedItem.name;
+				_mes.sourcename=sourcename_id.text;
+				var ee:AdvertiseEvent=null;
+				if(_mes.id==''){
+					_mes.creator=this.parentApplication.operator.id;
+					_mes._creatorName=this.parentApplication.operator.opr_name_ch;
+					ee=new AdvertiseEvent(AdvertiseEvent.ADVERTIESE_ADD,{index:index,item:_mes},true);
+				}else{ 
+					ee=new AdvertiseEvent(AdvertiseEvent.ADVERTIESE_MODIFY,{index:index,item:_mes},true);
+				}
+				this.dispatchEvent(ee);
+			}
+			
+			/**
+			 *  添加数据成功回调函数 
+			 **/
+			public function invokeAdd(o:Object):void{
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"AdvertisePanel",{method:"add",index:index,item:o},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				cancel_clickHandler();
+			}
+			private function cancelHandler(e:Event):void
+			{
+				//				pbrUploadProgress.label="鍙栨秷涓婁紶";
+				//				txtFilename.text="";
+			}
+			/**
+			 * 显示需要上传的文件名称
+			 * 
+			 * @param event Event object contains details of the event triggering this handler.
+			 */ 
+			private function selectHandler(event:Event):void {
+//				sourcename_id.text =upfile.name;
+				sourcename_id.text=upfile.name.split(".")[0];
+//				txtFilename_cn_id.setFocus();
+//				btnUpload.enabled = true;
+//				img_add_id.enabled=true;
+//				cn_filename_id.visible=true;
+			}
+			
+			/**
+			 * 显示上传进度
+			 * 
+			 * @param event Event object contains details of the event triggering this handler.
+			 */ 
+			private function openHandler(event:Event):void {
+				//				pbrUploadProgress.visible = true;
+				pbrUploadProgress.label = "已上传 %3%% .";
+			}
+			
+			private function progressHandler(event:ProgressEvent):void {
+				pbrUploadProgress.setProgress(event.bytesLoaded, event.bytesTotal);    
+				
+			}
+			
+			/**
+			 *  上传完毕处理函数
+			 **/ 
+			private function uploadCompleteHandler(event:DataEvent):void {
+				try {
+					//					var xmlResponse:XML = XML(event.data);
+					//					pbrUploadProgress.label = "涓婁紶瀹屾垚.";
+					//					Alert.show(event.data.toString());
+					var mes:Message=MinnUtil.getMessage(JSON.decode(decodeURIComponent(event.data)));
+					if(mes.messageSucess==1){
+//					      Alert.show(Config.UPLOAD_AD_DIR+_mes.filename);
+						adm_id.url=Config.UPLOAD_AD_DIR+_mes.filename;
+						filename_id.text=_mes.filename;
+					
+					}
+						Alert.show(mes.messageBody,"提示")
+				
+				}
+				catch (error:Error) {
+					//					pbrUploadProgress.label = "寮傚父涓柇.";
+					Alert.show("返回元素处理失败: " + error.message,"提示");
+				}
+			}
+			
+			
+			private function uploadIoErrorHandler(event:IOErrorEvent):void {
+				//				pbrUploadProgress.label = "涓婁紶琚腑鏂紝璇烽噸鏂颁笂浼?";
+				Alert.show("IO Error: " + event.toString());
+			}
+			
+			protected function up_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			
+				var typearr:Array=upfile.name.split(".");
+//				_photo.creator=this.parentApplication.operator.id;
+//				_photo.mcd_id=this.parentDocument.merchandise.id;
+				if(_mes==null)
+					_mes=new Advertise();
+				_mes._sid=this.parentApplication.PRIVATEKEY;
+				_mes.filename =this.parentApplication.operator.opr_name_en+"_"+MinnUtil.getCurentDateAndTime("YYYYMMDDHHNNSS")+"."+typearr[typearr.length-1];
+				_mes.url=url_id.selectedItem.name;
+				_mes.sourcename=typearr[0];
+				var request:URLRequest = new URLRequest(Config.UPLOAD_AD_URL);
+				request.method = "post";
+				//				var d:Date=new Date();
+				
+				//				AlertExt.show(arr.toString());
+				//				othername=Operator.operId+d.getTime()+"."+arr[arr.length-1];
+				//				Alert.show(this.parentApplication.operator.opr_name_en);
+				
+				
+				var variables:URLVariables = new URLVariables();
+				variables.method ="upload";
+//				variables.upfilename=_photo.imgpath; 
+				variables.advertise=encodeURIComponent(JSON.encode(_mes));
+				
+				
+				
+				request.data =variables;
+				
+				upfile.upload(request);
+				
+			}
+			private function browseHandler(event:Event):void {
+				//				pbrUploadProgress.visible = false;
+				upfile.browse([adtypes]);
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<fx:Array id="validatorArray">
+			<mx:StringValidator 
+								source="{name_id}" 
+								requiredFieldError="标题不能为空！"
+								property="text" 
+								required="true" />
+			<mx:StringValidator
+								source="{desc_id}" 
+								requiredFieldError="广告描述不能为空！"
+								property="text" 
+								required="true" />
+		
+		</fx:Array>
+		
+	</fx:Declarations>
+	<mx:HBox>
+		
+	
+	<mx:Form width="100%" paddingTop="0">
+		<mx:FormItem label="上传域名">
+			<mx:ComboBox  labelField="name" id="url_id" text="{_mes.url}" width="153"/>
+		</mx:FormItem>
+		<mx:FormItem label="原名">
+			<mx:Label id="sourcename_id" text="{_mes.sourcename}"/>
+		</mx:FormItem>
+		<mx:FormItem label="标题">
+			<s:TextInput id="name_id" text="{_mes.title}" width="163"/>
+		</mx:FormItem>
+		<mx:FormItem label="创建人">
+			<mx:Label text="{_mes._creatorName}" width="152" id="creator_id"/>
+		</mx:FormItem>
+		<mx:FormItem label="创建时间">
+			<base:LocalDateField id="dt_id" text1="{_mes.createDate}" dtVisible="false" width="159"/>
+		</mx:FormItem>
+		<mx:FormItem label="广告描述">
+			<mx:TextArea height="91" text="{_mes.content}" id="desc_id" width="167"/>
+		</mx:FormItem> 
+		<mx:HBox width="100%" paddingLeft="40">
+			<s:Button label="确定" click="saveOrModify_clickHandler(event)"/>
+			<s:Button label="取消" click="cancel_clickHandler(event)"/>
+		</mx:HBox>
+		
+	</mx:Form>
+		<mx:VBox verticalGap="0">
+			<mx:HBox>
+				<s:Button label="(500X270)模板上传" click="browseHandler(event)"/><mx:Button label="上传" click="up_clickHandler(event)"/><s:Label text="随机文件名:"/><mx:Label  id="filename_id" text="{_mes.filename}"/>
+			</mx:HBox>
+			<mx:ModuleLoader id="adm_id" width="500" height="270" />
+		</mx:VBox>
+	</mx:HBox>
+</mx:Module>

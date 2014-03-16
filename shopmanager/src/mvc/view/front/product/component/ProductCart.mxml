@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="100%"  xmlns:component="mvc.view.front.product.component.*">
+	<fx:Script source="../../../../../mvc/base/FrontBaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import minn.common.Entrypt;
+			
+			import mvc.view.front.product.event.ProductListEvent;
+			import mvc.view.front.product.vo.Product;
+			
+			[Bindable]
+			public var numProducts:int=0;
+			
+			[Bindable]
+			private var total:Number = 0;
+			protected function help_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				WindowProxy.getInstance().getModuleWindow("mvc/view/front/help/UserHelper.swf");
+			}
+
+			protected function commit_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Entrypt.loadswfObject("mvc/view/front/order/component/OrderInfo.swf",loadswfCompleteHandler);
+//				WindowProxy.getInstance().getMdiWindow("mvc/view/front/order/component/OrderInfo.swf");
+//				win.x=this.screen.x/2-win.width/2;
+//				win.y=this.screen.y/2-win.height/2;
+			}
+			private function loadswfCompleteHandler(evt:Event):void{
+				//				mm.loadModule("2011010812342.swf",Entrypt.uncompress(evt.target.data as ByteArray,KEY));
+				WindowProxy.getInstance().getMdiWindow("mvc/view/front/order/component/OrderInfo.swf",evt.target.data as ByteArray);
+			}
+			private function productListEventHandler(event:ProductListEvent):void
+			{
+				switch (event.type)
+				{
+					case ProductListEvent.ADD_PRODUCT:
+						event.product.qty = 0;  
+						//fall through into the same logic as dup          
+					case ProductListEvent.DUPLICATE_PRODUCT:
+						event.product.qty++;
+//						Alert.show(event.product.qty.toString());
+						total += event.product.price;
+						numProducts++;
+						break;            
+					case ProductListEvent.PRODUCT_QTY_CHANGE:
+//						Alert.show("change");
+					case ProductListEvent.REMOVE_PRODUCT:
+						var items:Array = productList.items;
+						total = 0; 
+						numProducts = 0;
+						for (var i:int=0; i < items.length; i++)
+						{
+							var product:Product = items[i].product;
+							total += product.qty * product.price;
+							numProducts += product.qty;
+						}
+						
+						break;
+					default:
+						break;
+				}
+			}
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<mx:CurrencyFormatter currencySymbol="￥" id="cf" precision="2"/>
+	</fx:Declarations>
+	
+	
+	<mx:HBox>
+		<mx:Image source="assets/icon_cart_full.png"/>
+		<s:Label text="我的购物车(可把商品拖动到这里)"/>
+		<s:Label text="帮助?" click="help_clickHandler(event)"/>
+	</mx:HBox>
+	<component:ProductList  id="productList" width="100%" height="100%" styleName="homeSection"
+							addProduct="productListEventHandler(event)"
+							duplicateProduct="productListEventHandler(event)"
+							productQtyChange="productListEventHandler(event)"
+							removeProduct="productListEventHandler(event)"  showQuantity="true">
+		
+	</component:ProductList>
+	<mx:Canvas width="100%" height="76" styleName="homeSection">
+		
+		<s:Button label="提交" x="295" y="52" click="commit_clickHandler(event)"/>
+		<s:Label x="135" y="7" text="购物总数"/>
+		<s:Label x="223" y="7" text="{numProducts}"/>
+		<s:Label x="223" y="35" text="{cf.format(total)}"/>
+		<s:Label x="135" y="35" text="购物总额"/>
+	</mx:Canvas>
+</mx:VBox>

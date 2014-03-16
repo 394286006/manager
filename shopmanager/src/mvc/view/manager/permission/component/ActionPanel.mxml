@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   layout="absolute" width="282" height="236"
+		   name="权限设置"
+		   initialize="module1_initializeHandler(event)"
+		   creationComplete="module_creationCompleteHandler(event)" 
+		   remove="module1_removeHandler(event)" >
+	
+	<fx:Metadata>
+	</fx:Metadata>
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mx.events.ValidationResultEvent;
+			import mx.validators.Validator;
+			
+			[Bindable]
+			private var actiontb:ActionTb=null;	
+			public var fun:Function=null;
+			// send the named event
+			private var method:String="add";
+			private var index:int=0;
+			protected function module1_initializeHandler(event:Event):void
+			{
+				MinnMessageEventManager.getInstance().addEventListener(this.parent.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+				
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				method=e.data.method;
+				index=e.data.index;
+				actiontb=e.data.item as ActionTb;
+			}
+			
+			protected function module_creationCompleteHandler(event:FlexEvent):void
+			{
+				//				var d:Module
+				// TODO Auto-generated method stub
+				appFacade.startup(AppCommand.ACTION_PANEL_STARTUP,this);
+			}
+			
+			
+			
+			
+			
+		
+			
+			private function sendEvent( eventName:String ):void
+			{
+				//							fun();
+				var validatorErrorArray:Array = Validator.validateAll(validatorArray); 
+				var err:ValidationResultEvent; 
+				var errorMessageArray:Array = []; 
+				if(validatorErrorArray.length>0){
+					for each (err in validatorErrorArray) { 
+						errorMessageArray.push(err.message); 
+					} 
+					
+					if(errorMessageArray.length >0){
+						Alert.show(errorMessageArray.join("\n\n"), "请按照以下错误提示信息重新填写", Alert.OK);
+						
+						return;
+					}
+				}
+				
+				switch(eventName){
+					case PermissionEvent.ACTION_ADD:
+						actiontb._sid=this.parentApplication.PRIVATEKEY;
+						actiontb.name=pname.text;
+						actiontb.descript=desc_id.text;
+						actiontb.actionnum=num.text;
+						if(actiontb.id==''){
+//						actiontb=new ActionTb();
+						actiontb._creatorName=this.parentApplication.operator.opr_name_ch;
+						actiontb.creator=this.parentApplication.operator.id;
+						this.dispatchEvent(new PermissionEvent(eventName,{method:'add',item:actiontb},true));
+						}else{
+							this.dispatchEvent(new PermissionEvent(PermissionEvent.ACTION_MODIFY,{method:'modify',item:actiontb,index:index},true));
+						}
+						break;
+					
+					case PermissionEvent.ACTION_CANCEL:
+						cancel_clickHandler();
+						break;
+				}
+				
+			}
+			
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+			public function cancel_clickHandler(event:MouseEvent=null):void
+			{
+				
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+				if(method=="modify"){
+					var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"ActionPanel",{method:"modify",index:index,item:actiontb},true);
+					MinnMessageEventManager.getInstance().dispatchEvent(me);
+				}
+			}
+			/**
+			 *  添加数据成功回调函数 
+			 **/
+			public function invokeAdd(o:Object):void{
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"ActionPanel",{method:"add",index:index,item:o},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+			public function invokeModify(o:Object):void{
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"ActionPanel",{method:"modify",index:index,item:o},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<fx:Array id="validatorArray">
+			<mx:StringValidator 
+				source="{pname}" 
+				requiredFieldError="权限不能为空！"
+				property="text" 
+				required="true" />
+			<mx:StringValidator
+				source="{num}" 
+				requiredFieldError="编号不能为空！"
+				property="text" 
+				required="true" />
+			<mx:StringValidator
+				source="{desc_id}" 
+				requiredFieldError="描述不能为空！"
+				property="text" 
+				required="true" />
+		</fx:Array>
+	</fx:Declarations>
+	
+	<mx:Label x="23" y="11" text="名称"/> 
+	<mx:TextInput id="pname" x="87" y="9" text="{actiontb.name}"/>
+	
+	<mx:Label x="23" y="37" text="编号"/> 
+	<mx:TextInput id ="num" x="87" y="35" text="{actiontb.actionnum}"/>	
+	
+	<mx:LinkButton x="67" y="191" name="login" label="提交" click="sendEvent(PermissionEvent.ACTION_ADD)"/>
+	<mx:LinkButton x="154" y="191" label="取消" click="sendEvent(PermissionEvent.ACTION_CANCEL)"/>
+	<mx:Label x="23" y="122" text="描述"/>
+	<mx:TextArea id ="desc_id" x="87" y="120"  height="66" text="{actiontb.descript}"/>
+	<mx:Label x="23" y="67" text="创建人"/>
+	<mx:Label id="pname0" x="87" y="65" text="{actiontb._creatorName}"/>
+	<mx:Label x="23" y="93" text="创建时间"/>
+	<mx:Label id ="num0" x="87" y="91" text="{actiontb.createDate}"/>
+</mx:Module>

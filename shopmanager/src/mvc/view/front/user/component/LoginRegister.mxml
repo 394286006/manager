@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" horizontalScrollPolicy="off" verticalScrollPolicy="off" horizontalGap="5">
+	<fx:Script>
+		<![CDATA[
+			import minn.common.Entrypt;
+			
+			import spark.components.TitleWindow;
+			include "../../../../../mvc/base/BaseImport.as";
+			protected function login_or_register_clickHandler(event:MouseEvent,type:String):void
+			{
+				// TODO Auto-generated method stub
+				Entrypt.loadswfObject("mvc/view/front/user/component/LoginOrRegisterPanel.swf",function(evt:Event):void{
+					loadSpTitleswfCompleteHandler(evt,"mvc/view/front/user/component/LoginOrRegisterPanel.swf",type,event.stageX,event.stageY);
+				});
+//				var win:TitleWindow= WindowProxy.getInstance().getSpTitleWindow("mvc/view/front/user/component/LoginOrRegisterPanel.swf",type,null,event.stageX,event.stageY);
+//				var clazz:Class = getDefinitionByName("skip.TitleWindowSkinClass") as Class;
+//				win.setStyle("skinClass", clazz); 
+//				 this.parentDocument.filp2Loe();
+			}
+
+			private function loadSpTitleswfCompleteHandler(evt:Event,url:String,d:Object,x:Number,y:Number):void{
+				//				mm.loadModule("2011010812342.swf",Entrypt.uncompress(evt.target.data as ByteArray,KEY));
+				WindowProxy.getInstance().getSpTitleWindow(url,evt.target.data as ByteArray,d,this,true,x,y);
+			}
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:Spacer width="0"/><s:Label text="登陆"  paddingTop="12" click="login_or_register_clickHandler(event,'default')"/><s:Label text="注册"  paddingTop="12" click="login_or_register_clickHandler(event,'Register')"/><mx:Spacer width="2"/>
+</mx:HBox>

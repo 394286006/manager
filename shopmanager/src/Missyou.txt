@@ -1,0 +1,26 @@
+  attributes.wmode = "transparent";opaque
+function onNsRightClick(e){
+if(e.which == 3){
+   FlexTest.openRightClick();
+   e.stopPropagation(); 
+}
+return false;
+}
+
+function onIeRightClick(e){
+alert('d');
+if(event.button > 1){
+   FlexTest.openRightClick();
+   parent.frames.location.replace('javascript: parent.falseframe');
+}
+return false;
+}
+
+
+if(navigator.appName == "Netscape"){
+document.captureEvents(Event.MOUSEDOWN); 
+document.addEventListener("mousedown", onNsRightClick, true); 
+}
+else{
+document.onmousedown=onIeRightClick; 
+}

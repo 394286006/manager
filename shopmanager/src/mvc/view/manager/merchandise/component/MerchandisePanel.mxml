@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   name="商品管理" 
+		   layout="horizontal" width="900" height="380"  horizontalGap="3" paddingTop="0"
+		   initialize="module1_initializeHandler(event)" 
+		   creationComplete="module1_creationCompleteHandler(event)"
+		   remove="module1_removeHandler(event)" xmlns:component="mvc.view.manager.merchandise.component.*" xmlns:base="com.base.*">
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mvc.model.ctype.vo.Ctype;
+			import mvc.model.merchandise.vo.Discount;
+			import mvc.model.merchandise.vo.Merchandise;
+			import mvc.model.merchandise.vo.Photo;
+			import mvc.view.manager.merchandise.event.MerchandiseEvent;
+			
+			import mx.events.ListEvent;
+			import mx.events.ValidationResultEvent;
+			import mx.validators.Validator;
+			[Bindable]
+			private var _merchandise:Merchandise;
+		
+			private var index:int=0;
+			[Bindable]
+			private var _ctypes:XMLList=null;
+			
+			private var method:String="add";
+			
+			
+			
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(this.parent.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+				//				MinnMessageEventManager.getDisp().addEventListener(this.parentDocument.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+				
+			}
+			private function messageHandler(e:MinnMessageEvent):void{
+				_merchandise=e.data.item as Merchandise;
+				method=e.data.method;
+				_ctypes=e.data.ctypes as XMLList;
+//				category_id.dataProvider=XML(maxcategory_id.selectedItem).children();
+				index=e.data.index;
+//				_ctypes.appendChild(XMLList(e.data.ctypes));
+//								Alert.show(_merchandise._discount.percend);
+//				MinnUtil.propertyMap(_merchandise._discount);
+				if(method=="add")
+				   maxcategory_id_changeHandler();
+//				var ctype:Ctype=new Ctype();
+				if(method=="modify"){
+					var pid:String=_merchandise._ctype.pid;
+					for(var i:int=0;i<_ctypes.length();i++){
+						var id:String=_ctypes[i].@id;
+						if(id==pid){
+							maxcategory_id.selectedItem=_ctypes[i];
+							var temp:XMLList=XMLList(_ctypes[i].children());
+							category_id.dataProvider=temp;
+							for(var j:int=0;j<temp.length();j++){
+								var cid:String=temp[j].@id;
+								if(cid==_merchandise.category_id){
+									category_id.selectedItem=temp[j];
+									break;
+								}
+							}
+							break;
+						}
+					}
+					var parr:ArrayCollection=new ArrayCollection();
+					var ps:Array=_merchandise._photos as Array;
+					for(var i:int=0;i<ps.length;i++){
+						var v:Photo=new Photo();
+					
+						parr.addItem(v);
+					}
+					
+					MinnUtil.copyProperty(parr,ps);
+					
+					
+					uppic_id.imgarray=parr.toArray();
+					
+				}
+			}
+
+			public function get  merchandise():Merchandise{
+				return _merchandise;
+			}
+			protected function module1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				appFacade.startup(AppCommand.MERCHANDISE_PANEL_STARTUP,this);
+			}
+
+
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+
+			public function cancel_clickHandler(evt:MouseEvent=null):void
+			{
+				this.dispatchEvent(new CloseEvent(CloseEvent.CLOSE,true));
+				if(method=="add"&&evt!=null){
+					var variables:URLVariables = new URLVariables();
+					variables.method ="delfile";
+					variables.level="all";
+					uppic_id.delFileRecord(uppic_id.imgarray,variables);
+				}
+			}
+			
+	
+			
+			
+			protected function saveOrModify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var validatorErrorArray:Array = Validator.validateAll(validatorArray); 
+				var err:ValidationResultEvent; 
+				var errorMessageArray:Array = []; 
+				if(validatorErrorArray.length>0){
+					for each (err in validatorErrorArray) { 
+						errorMessageArray.push(err.message); 
+					} 
+					
+					if(errorMessageArray.length >0){
+						Alert.show(errorMessageArray.join("\n\n"), "请按照以下错误提示信息重新填写", Alert.OK);
+						
+						return;
+					}
+				}
+				
+				if(uppic_id.imgarray.length==0){
+					Alert.show("添加数据不完整,请上传图片!","提示");
+					return;
+				}else{
+					var smallimg:int=0;
+					var bigimg:int=0;
+					for(var i:int=0;i<uppic_id.imgarray.length;i++){
+						var _p:Photo=uppic_id.imgarray[i] as Photo;
+						if(_p.level1type==''){
+							++smallimg;
+						}
+						if(_p.level2type=='')
+						{
+							++bigimg;
+						}
+					}
+					
+					if(smallimg>0){
+						Alert.show("上传图片中，有"+smallimg+"条小图数据不完整!","提示");
+						return;
+					}
+					if(bigimg>0){
+						Alert.show("上传图片中，有"+bigimg+"条大图数据不完整!","提示");
+						return;
+					}
+				}
+				
+				
+				var ctype:Ctype=new Ctype();
+				ctype._sid=this.parentApplication.PRIVATEKEY;
+				MinnUtil.propertyMap(XMLList(category_id.selectedItem),ctype);
+				ctype._parentName=maxcategory_id.selectedItem.@name;
+				if(falg_id.selected){
+					var _discount:Discount=new Discount();
+					_discount.percend=dicount_id.text;
+					_merchandise._discount=_discount;
+				}
+				_merchandise._sid=this.parentApplication.PRIVATEKEY;
+				_merchandise._imgcount=uppic_id.imgcount;
+				_merchandise._ctype=ctype;
+				
+				
+				_merchandise._photos=uppic_id.imgarray;
+				_merchandise.category_id=category_id.selectedItem.@id;
+				_merchandise.name=name_id.text;
+				_merchandise.price=price_id.text;
+				_merchandise.pcount=pcount_id.text;
+				_merchandise.upTime=uptime_id.text;
+				_merchandise.downTime=downtime_id.text;
+				_merchandise.descript=desc_id.text;
+				_merchandise.weight=weight_id.text;
+				_merchandise.otherpath=otherpath_id.text;
+				_merchandise.creator=this.parentApplication.operator.id;
+				_merchandise._creatorName=this.parentApplication.operator.opr_name_ch;
+				var ee:MerchandiseEvent=null;
+				if(_merchandise.id==''){
+					ee=new MerchandiseEvent(MerchandiseEvent.MERCHANDISE_ADD,{index:index,item:_merchandise},true);
+				}else{ 
+					ee=new MerchandiseEvent(MerchandiseEvent.MERCHANDISE_MODIFY,{index:index,item:_merchandise},true);
+				}
+				this.dispatchEvent(ee);
+			}
+			
+			/**
+			 *  添加数据成功回调函数 
+			 **/
+			public function invokeAdd(o:Object):void{
+				var me:MinnMessageEvent=new MinnMessageEvent(MinnMessageEvent.MESSAGE+"MerchandisePanel",{method:"add",index:index,item:o},true);
+				MinnMessageEventManager.getInstance().dispatchEvent(me);
+				cancel_clickHandler();
+			}
+		
+            /**
+			 * 商品大类改变响应函数
+			 **/
+			protected function maxcategory_id_changeHandler(event:ListEvent=null):void
+			{
+				// TODO Auto-generated method stub
+//				Alert.show( maxcategory_id.selectedItem.toString());
+				category_id.dataProvider=XML(maxcategory_id.selectedItem).children();
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<fx:Array id="validatorArray">
+			<mx:StringValidator 
+				source="{name_id}" 
+				requiredFieldError="名称不能为空！"
+				property="text" 
+				required="true" />
+			<mx:NumberValidator source="{price_id}" property="text" integerError="请输入数字!" invalidCharError="请输入数字!" invalidFormatCharsError="请输入数字!"
+								minValue="0"  domain="real"
+							    required="true" requiredFieldError="价格不能为空！"
+								/>
+			<mx:NumberValidator source="{pcount_id}" property="text" integerError="请输入整型!" invalidCharError="请输入整型!" invalidFormatCharsError="请输入整型!"
+								minValue="0"  domain="int"
+								required="true" requiredFieldError="数量不能为空！"
+								/>
+			<mx:NumberValidator source="{weight_id}" property="text" integerError="请输入数字!" invalidCharError="请输入数字!" invalidFormatCharsError="请输入数字!"
+								minValue="0"  domain="real"
+								required="true" requiredFieldError="重量不能为空！"
+								/>
+			<mx:StringValidator
+				source="{desc_id}" 
+				requiredFieldError="描述不能为空！"
+				property="text" 
+				required="true" />
+			
+		</fx:Array>
+		
+	</fx:Declarations>
+
+	<mx:Form paddingTop="0" paddingLeft="1" paddingRight="0">
+		<mx:FormItem label="名称">
+				<s:TextInput text="{_merchandise.name}" id="name_id"  width="150"/>
+		</mx:FormItem>
+		<mx:FormItem label="大类别">
+			<mx:ComboBox id="maxcategory_id" labelField="@name" width="150" dataProvider="{_ctypes}" change="maxcategory_id_changeHandler(event)"/>
+		</mx:FormItem>
+		<mx:FormItem label="小类别">
+			<mx:ComboBox id="category_id" labelField="@name" width="150"/>
+		</mx:FormItem>
+		<mx:FormItem label="价格">
+				<s:TextInput text="{_merchandise.price}" id="price_id"  width="150"/>
+		</mx:FormItem>
+		<mx:FormItem label="数量">
+				<s:TextInput text="{_merchandise.pcount}"  width="150" id="pcount_id"/>
+		</mx:FormItem>
+		<mx:FormItem label="重量">
+			<s:TextInput text="{_merchandise.weight}"  width="150" id="weight_id"/>
+		</mx:FormItem>
+		<mx:FormItem label="上架时间">
+				<base:LocalDateField text1="{_merchandise.upTime}" id="uptime_id"/>
+		</mx:FormItem>
+		<mx:FormItem label="落架时间">
+			<base:LocalDateField text1="{_merchandise.downTime}" id="downtime_id"/>
+		</mx:FormItem>
+		<mx:FormItem label="创建人">
+			<mx:Label id="creator_id" text=""/>
+		</mx:FormItem>
+		<mx:FormItem label="创建时间">
+			<mx:Label id="creatordate_id" text="{_merchandise.createDate}"/>
+		</mx:FormItem>
+		<mx:FormItem label="商品折扣">
+			<mx:HBox horizontalGap="5">
+				<s:TextInput text="{_merchandise._discount.percend}" width="40" id="dicount_id" enabled="{falg_id.selected}"/><mx:CheckBox id="falg_id" label="eg:0.1~~~9.9"/> 
+			</mx:HBox>
+			
+		</mx:FormItem>
+		<mx:HBox width="100%" >
+			<mx:Spacer width="20"/>
+			<s:Button label="保存" click="saveOrModify_clickHandler(event)"/>
+			<s:Button label="取消" click="cancel_clickHandler(event)"/>
+		</mx:HBox>
+	</mx:Form>
+	<mx:VBox width="150" height="335">
+		<s:Label text="描述"/>
+		<mx:TextArea height="100%" width="100%" text="{_merchandise.descript}" id="desc_id"/>
+		<s:Label text="其它链接"/>
+		<s:TextInput id="otherpath_id" text="{_merchandise.otherpath}"/>
+	</mx:VBox>
+		<component:UpPicExp title="文件上传" id="uppic_id"/>
+	
+</mx:Module>

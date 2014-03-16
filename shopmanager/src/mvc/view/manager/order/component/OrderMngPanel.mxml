@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   name="订单管理"
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="vertical" width="100%" height="100%" xmlns:common="minn.common.*" 
+		   initialize="module1_initializeHandler(event)" creationComplete="creationCompleteHandler(event)" remove="module1_removeHandler(event)">
+	<fx:Script source="../../../../../mvc/base/BaseImport.as"/>
+	<fx:Script>
+		<![CDATA[
+			/**
+			 * @author minn
+			 * @QQ 394286006
+			 * @email freemanfreelift@gmail.com
+			 */
+			import mvc.view.manager.order.event.OrderEvent;
+			
+			private　var types:Array=[];
+			[Bindable]
+			private var orders:ArrayCollection=new ArrayCollection();
+			protected function module1_initializeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				MinnMessageEventManager.getInstance().addEventListener(this.parent.toString()+MinnMessageEvent.CREATIONCOMPLETE_MESSAGE,messageHandler);
+
+			}
+			
+			private function messageHandler(e:MinnMessageEvent):void{
+				
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				appFacade.startup(AppCommand.ORDER_MNG_STARTUP,this);
+				query_clickHandler();
+			}
+			
+			
+			
+
+			protected function module1_removeHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.removeEventListener(FlexEvent.CREATION_COMPLETE,creationCompleteHandler);
+			}
+			
+			protected function add_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var url:String="mvc/view/order/component/OrderPanel";
+//				WindowProxy.getInstance().getSpTitleWindow(AppCommand.OPERATORPANEL_STARTUP,url);
+				//				parent.mdiCanvas.windowManager.addCenter(win);
+			}
+			
+			
+			protected function modify_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var url:String="mvc/view/order/component/OrderPanel";
+//				WindowProxy.getInstance().getSpTitleWindow(AppCommand.OPERATORPANEL_STARTUP,url);
+			}
+			
+			
+			protected function del_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			private function query_clickHandler(e:Event=null):void{
+				var condition:Object=new Object();
+				condition._sid=this.parentApplication.PRIVATEKEY;
+				if(e is PageEvent){
+					condition.pageIndex=(e as PageEvent).pageIndex;
+					condition.pageSize=(e as PageEvent).pageSize;
+					condition.recordCount=(e as PageEvent).recordCount;
+				}else{
+					pageBar.recordCount = -1;
+					pageBar.pageIndex = 0;
+					condition.pageIndex=pageBar.pageIndex;
+					condition.pageSize=pageBar.pageSize;
+					condition.recordCount=pageBar.recordCount;
+				}
+				//				Alert.show(condition.pageIndex);
+//				condition.type_name=name_id.text;
+//				condition.type_maxcategory_id='';
+//				condition.type_category_id='';
+//				if(maxcategory_search_id.selectedIndex>-1){
+//					var maxcategory_id:String=maxcategory_search_id.selectedItem.@id;
+//					condition.type_maxcategory_id=maxcategory_id;
+//				}
+//				if(category_search_id.selectedIndex>-1){
+//					var category_id:String=category_search_id.selectedItem.@id;
+//					condition.type_category_id=category_id;
+//				}
+				this.dispatchEvent(new OrderEvent(OrderEvent.ORDER_QUERY,{item:condition},true));
+			}
+			
+			/**
+			 * 查询结果回调函数
+			 **/ 
+			public function invokeQuery(arr:ArrayCollection,recordCount:int):void{
+				pageBar.recordCount=recordCount;
+				orders.removeAll();
+				order_id.itemRenderer=null;
+				orders.addAll(arr);
+				//				Alert.show(ctypes.length+'');
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<mx:states>
+		<s:State name="default"/>    
+		<s:State name="qry"/>
+	</mx:states>
+	<mx:HBox width="100%">
+		<common:PageToolBar id="pageBar">
+		</common:PageToolBar><mx:ComboBox dataProvider="{[{label:'未完成订单'},{label:'已完成订单'}]}" id="pay_id"/>
+		<mx:Spacer width="100%"/>
+		<s:ToggleButton label="显示条件查询" click="currentState='qry'" click.qry="currentState=''" label.qry="隐藏条件查询" />
+		<s:ToggleButton label="添加" click="add_clickHandler(event)"/>
+		<s:ToggleButton label="修改" click="modify_clickHandler(event)"/>
+		<s:ToggleButton label="删除" click="del_clickHandler(event)"/>
+	</mx:HBox>
+	<mx:HBox width="100%" includeIn="qry">
+		<s:Label text="用户名"/>
+		<s:TextInput/>
+		<s:Button label="查找"/>
+		
+	</mx:HBox>
+	<mx:DataGrid width="100%" height="100%" dataProvider="{orders}" id="order_id">
+		<mx:columns>
+			<mx:DataGridColumn headerText="订单编号" dataField="out_trade_no"/>
+			<mx:DataGridColumn headerText="下订单人" dataField="_creatorName"/>
+			<mx:DataGridColumn headerText="收货人" dataField="receiveName"/>
+			<mx:DataGridColumn headerText="提交时间" dataField="createDate"/>
+			<mx:DataGridColumn headerText="配送方式" dataField="getway"/>
+			<mx:DataGridColumn headerText="总重量" dataField="totalweight"/>
+			<mx:DataGridColumn headerText="总金额" dataField="totalmoney"/>
+			<mx:DataGridColumn headerText="是否有效" dataField="flag">
+				<mx:itemRenderer>
+					<fx:Component>
+						<mx:Label text="等待处理" updateComplete="label1_updateCompleteHandler(event,data)">
+							<fx:Script>
+								<![CDATA[
+									import mx.events.FlexEvent;
+									protected function label1_updateCompleteHandler(event:FlexEvent,obj:Object):void
+									{
+										// TODO Auto-generated method stub
+										if(obj.flag==0){
+											this.text="已取消";
+										}else{
+											this.text="等待处理";
+										}
+									}
+								]]>
+							</fx:Script>
+						</mx:Label>
+						
+					</fx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+			<mx:DataGridColumn headerText="确认收货" dataField="receive">
+				<mx:itemRenderer>
+					<fx:Component>
+						<mx:Button label="确认" updateComplete="button1_updateCompleteHandler(event,data)">
+							<fx:Script>
+								<![CDATA[
+									import mx.events.FlexEvent;
+									protected function button1_updateCompleteHandler(event:FlexEvent,obj:Object):void
+									{
+										// TODO Auto-generated method stub
+										if(obj.receive==0){
+											this.enabled=false;
+											this.label="未确认";
+										}else{
+											this.enabled=true;
+										}
+									}
+								]]>
+							</fx:Script>
+						</mx:Button>
+						
+					</fx:Component>
+				</mx:itemRenderer>
+			</mx:DataGridColumn>
+		</mx:columns>
+	</mx:DataGrid>
+</mx:Module>
